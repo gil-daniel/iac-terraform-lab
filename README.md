@@ -76,6 +76,22 @@ iac-terraform-lab/
    ```
    * Web browser: Visit http://<vm_public_ip> to see the default NGINX welcome page.
 ---
+
+## ⚙️ Using the Makefile (optional)
+
+This project includes a `Makefile` to simplify common Terraform commands:
+```bash
+make init       # Initialize Terraform
+make plan       # Show execution plan
+make apply      # Apply the configuration
+make destroy    # Destroy all resources
+make output     # Show output values
+make validate   # Validate Terraform files
+make format     # Format code with terraform fmt
+```
+>You can still run Terraform manually if you prefer
+
+---
 ## 🌐 Outputs
 
 After a successful apply, Terraform will output:
