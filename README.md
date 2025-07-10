@@ -1,18 +1,22 @@
 # Terraform Azure Lab – Linux VM Provisioning
 
-This project demonstrates how to provision a basic infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). It includes the creation of a resource group, virtual network, subnet, network interface, and a Linux virtual machine with SSH access.
+This project demonstrates how to provision a complete infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). It includes the creation of a resource group, virtual network, subnet, network interface, public IP, network security group (NSG), and a Linux virtual machine with NGINX installed automatically via `cloud-init`.
 
-> ⚠️ This project is under active development and will be expanded with additional features such as public IP, NSG, cloud-init provisioning, and remote state backend.
+> ✅ This project is fully functional and serves a web page via NGINX on a public IP.  
+> 🛠️ It is under continuous development and will be extended with remote state, modules, and CI/CD integration.
 
 ---
 
 ## 🚀 What It Does
 
-- Creates a resource group in Azure
-- Provisions a virtual network and subnet
-- Deploys a Linux VM (Ubuntu 22.04 LTS)
-- Configures SSH access using your public key
-- Outputs the VM's private IP address
+- Creates a resource group in Azure  
+- Provisions a virtual network and subnet  
+- Deploys a Linux VM (Ubuntu 22.04 LTS)  
+- Configures SSH access using your public key  
+- Creates a public IP and associates it with the VM  
+- Creates a Network Security Group with rules for SSH (22) and HTTP (80)  
+- Installs and starts NGINX using `cloud-init`  
+- Outputs the VM's private and public IP addresses  
 
 ---
 
@@ -24,8 +28,10 @@ iac-terraform-lab/
 ├── variables.tf               # Input variables
 ├── outputs.tf                 # Output values
 ├── terraform.tfvars           # Variable values (excluded from Git)
-├── .gitignore                 # Terraform specific exclusions
+├── cloud-init.yaml            # Cloud-init script to install NGINX
+├── .gitignore                 # Terraform-specific exclusions
 ├── README.md                  # Project documentation
+
 ```
 
 ---
@@ -58,20 +64,35 @@ iac-terraform-lab/
    ```bash
    terraform apply
    ```
+5. After deployment, access the VM:
+   * SSH:
+    ```bash
+    ssh <your-username>@<vm_public_ip>
+   ```
+   * Web browser: Visit http://<vm_public_ip> to see the default NGINX welcome page.
+---
+## 🌐 Outputs
+
+After a successful apply, Terraform will output:
+
+   * vm_private_ip: Internal IP address of the VM
+
+   * vm_public_ip: Public IP address to access the VM via SSH and HTTP
 
 ---
-
 📌 Next Steps
 
-*   Add a public IP and NSG to allow SSH/HTTP access
-*   Install NGINX using cloud-init
-*   Configure remote backend with Azure Storage
-*   Modularize the infrastructure
+* [x] Add a public IP and NSG to allow SSH/HTTP access
+* [x] Install NGINX using cloud-init
+* [ ] Configure remote backend with Azure Storage
+* [ ] Modularize the infrastructure (vnet, vm, nsg, etc.)
+* [ ] Create multiple environments (dev, staging, prod)
+* [ ] Integrate with CI/CD (GitHub Actions or Azure DevOps)
 
 ---
 🧑‍💻 Author
 
-Daniel Gil github.com/gil-daniel
+Daniel Gil
 
 ---
 📄 License
