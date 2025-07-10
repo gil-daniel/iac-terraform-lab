@@ -1,0 +1,10 @@
+variable "vm_name" {}
+variable "vm_size" {}
+variable "admin_username" {}
+variable "ssh_public_key_path" {}
+variable "cloud_init_path" {}
+variable "location" {}
+variable "resource_group_name" {}
+variable "subnet_id" {}
+variable "public_ip_name" {}
+variable "nic_name" {}

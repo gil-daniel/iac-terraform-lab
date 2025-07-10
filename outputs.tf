@@ -1,6 +1,7 @@
 output "vm_private_ip" {
-  value = azurerm_network_interface.nic.private_ip_address
+  value = module.compute.vm_private_ip
 }
+
 output "vm_public_ip" {
-  value = azurerm_public_ip.public_ip.ip_address
+  value = module.compute.vm_public_ip
 }
