@@ -8,19 +8,19 @@ resource "azurerm_resource_group" "rg" {
   location = var.location
 }
 
-resource "azurerm_virtual_network" "vnet" {
-  name                = "vnet-demo"
-  address_space       = ["10.0.0.0/16"]
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-}
+//resource "azurerm_virtual_network" "vnet" {
+//  name                = "vnet-demo"
+// address_space       = ["10.0.0.0/16"]
+//  location            = azurerm_resource_group.rg.location
+//  resource_group_name = azurerm_resource_group.rg.name
+//}
 
-resource "azurerm_subnet" "subnet" {
-  name                 = "subnet-demo"
-  resource_group_name  = azurerm_resource_group.rg.name
-  virtual_network_name = azurerm_virtual_network.vnet.name
-  address_prefixes     = ["10.0.1.0/24"]
-}
+//resource "azurerm_subnet" "subnet" {
+//  name                 = "subnet-demo"
+//  resource_group_name  = azurerm_resource_group.rg.name
+//  virtual_network_name = azurerm_virtual_network.vnet.name
+//  address_prefixes     = ["10.0.1.0/24"]
+//}
 
 resource "azurerm_network_interface" "nic" {
   name                = "nic-demo"
@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "nic" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.subnet.id
+    subnet_id                     = module.network.subnet_id
     private_ip_address_allocation = "Dynamic"
     public_ip_address_id = azurerm_public_ip.public_ip.id
   }
@@ -100,7 +100,16 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 resource "azurerm_subnet_network_security_group_association" "nsg_assoc" {
-  subnet_id                 = azurerm_subnet.subnet.id
+  subnet_id                 = module.network.subnet_id
   network_security_group_id = azurerm_network_security_group.nsg.id
+}
+module "network" {
+  source              = "./modules/network"
+  vnet_name           = "vnet-iac-lab"
+  address_space       = ["10.0.0.0/16"]
+  subnet_name         = "subnet-iac-lab"
+  subnet_prefixes     = ["10.0.1.0/24"]
+  location            = var.location
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
