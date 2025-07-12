@@ -10,6 +10,7 @@
 # The runner is ephemeral and destroyed after the job completes.
 # The plan job uses -lock=false to avoid state lock errors in CI runs.
 # The apply job runs only via manual dispatch and respects locking.
+# Variable values are injected securely via GitHub Secrets.
 
 name: Terraform CI
 
@@ -52,7 +53,12 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan (no lock)
-        run: terraform plan -lock=false -input=false -var-file=terraform.tfvars -out=tfplan
+        run: terraform plan -lock=false -input=false \
+          -var="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
+          -var="admin_username=${{ secrets.ADMIN_USERNAME }}" \
+          -var="ssh_public_key_path=${{ secrets.SSH_PUBLIC_KEY_PATH }}" \
+          -var="subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
+          -out=tfplan
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
