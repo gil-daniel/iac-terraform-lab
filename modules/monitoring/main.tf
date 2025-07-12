@@ -15,10 +15,6 @@ resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
     category = "AllMetrics"
   }
 
-  enabled_log {
-    category = "AuditLogs"
-  }
-
   depends_on = [azurerm_log_analytics_workspace.law]
 }
 
