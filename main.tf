@@ -38,5 +38,3 @@ module "compute" {
   public_ip_name          = "public-ip-demo"
   nic_name                = "nic-demo"
 }
-
-}
