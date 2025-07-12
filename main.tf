@@ -7,6 +7,7 @@ resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
   location = var.location
 }
+
 module "network" {
   source              = "./modules/network"
   vnet_name           = "vnet-iac-lab"
@@ -45,4 +46,27 @@ module "monitoring" {
   location            = var.location
   resource_group_name = var.resource_group_name
   vm_id               = module.compute.vm_id
+}
+
+resource "null_resource" "monitoring_setup" {
+  provisioner "local-exec" {
+    command = <<EOT
+      az vm identity assign \
+        --name ${module.compute.vm_name} \
+        --resource-group ${azurerm_resource_group.rg.name}
+
+      az monitor data-collection rule create \
+        --name dcr-linux-syslog \
+        --resource-group ${azurerm_resource_group.rg.name} \
+        --location ${var.location} \
+        --rule-file dcr.json
+
+      az monitor data-collection rule association create \
+        --name dcrAssoc \
+        --rule-id "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.Insights/dataCollectionRules/dcr-linux-syslog" \
+        --resource "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.Compute/virtualMachines/${module.compute.vm_name}"
+    EOT
+  }
+
+  depends_on = [module.compute, module.monitoring]
 }
