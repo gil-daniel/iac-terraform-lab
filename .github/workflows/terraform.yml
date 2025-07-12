@@ -53,7 +53,10 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan (no lock)
-        run: terraform plan -lock=false -input=false \
+        run: |
+          terraform plan \
+          -lock=false \
+          -input=false \
           -var="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
           -var="admin_username=${{ secrets.ADMIN_USERNAME }}" \
           -var="ssh_public_key_path=${{ secrets.SSH_PUBLIC_KEY_PATH }}" \
