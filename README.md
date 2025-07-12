@@ -4,7 +4,7 @@ This project demonstrates how to provision a complete infrastructure on Microsof
 
 > ✅ This project is fully modularized and uses a remote backend with Azure Storage.  
 > 🌐 The VM serves a web page via NGINX on a public IP.  
-> 🛠️ It is under continuous development and ready for CI/CD integration.
+> 🛠️ It is under continuous development and now includes CI/CD integration via GitHub Actions.
 
 ---
 
@@ -74,7 +74,41 @@ iac-terraform-lab/
     ```bash
     ssh <your-username>@<vm_public_ip>
    ```
-   * Web browser: Visit http://<vm_public_ip> to see the default NGINX welcome page.
+   * Web browser: Visit `http://<vm_public_ip>` to see the default NGINX welcome page.
+
+---
+
+## ⚙️ CI/CD with GitHub Actions
+
+This project includes a GitHub Actions workflow that automates Terraform operations:
+
+## 🔄 What It Does
+
+   * Runs terraform fmt, validate, and plan on every push or pull request
+
+   * Allows manual execution of terraform apply via the Actions tab
+
+   * Uses GitHub Secrets to securely inject sensitive variables
+
+   * Authenticates with Azure using a Service Principal
+
+## 🔐 Required GitHub Secrets
+
+| Secret Name | Description |
+| ----------- | ----------- |
+|`AZURE_CREDENTIALS`| JSON credentials for Azure login |
+|`RESOURCE_GROUP_NAME`| Name of the Resource group |
+|`ADMIN_USERNAME`| Username for the VM | 
+|`SSH_PUBLIC_KEY_CONTENT`| Content of your SSH Public Key |   
+|`SUBSCRIPTION_ID`| Azure Subscription ID |
+|`LOCATION`| Azure region (e.g `westeurope`) |
+
+## ▶️ How to Use
+
+   * Push changes to any branch → triggers `terraform plan`
+
+   * Go to Actions → Terraform CI → Run workflow → triggers `terraform apply`
+
 ---
 
 ## ⚙️ Using the Makefile (optional)
@@ -92,6 +126,7 @@ make format     # Format code with terraform fmt
 >You can still run Terraform manually if you prefer
 
 ---
+
 ## 🌐 Outputs
 
 After a successful apply, Terraform will output:
@@ -110,16 +145,19 @@ After a successful apply, Terraform will output:
 |compute | Creates Public IP, NIC, and Linux VM |
 
 ---
+
 📌 Next Steps
 
 * [x] Add a public IP and NSG to allow SSH/HTTP access
 * [x] Install NGINX using cloud-init
 * [x] Configure remote backend with Azure Storage
 * [x] Modularize the infrastructure (vnet, vm, nsg, etc.)
+* [x] Integrate with CI/CD (GitHub Actions or Azure DevOps)
 * [ ] Create multiple environments (dev, staging, prod)
-* [ ] Integrate with CI/CD (GitHub Actions or Azure DevOps)
-* [ ] Add monitoring and alerting with Azure Monito
+* [ ] Add monitoring and alerting with Azure Monitor
+
 ---
+
 🧑‍💻 Author
 
 Daniel Gil
