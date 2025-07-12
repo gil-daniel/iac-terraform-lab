@@ -7,3 +7,4 @@ crash.log
 terraform.tfplan
 .terraform.lock.hcl
 dcr.json
+dcr-expanded.json
