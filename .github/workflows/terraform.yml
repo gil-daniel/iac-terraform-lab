@@ -52,7 +52,7 @@ jobs:
         run: terraform validate
 
       - name: Terraform Plan (no lock)
-        run: terraform plan -lock=false -input=false -out=tfplan
+        run: terraform plan -lock=false -input=false -var-file=terraform.tfvars -out=tfplan
 
       - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
