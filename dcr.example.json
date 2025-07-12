@@ -1,0 +1,30 @@
+{
+  "location": "westeurope",
+  "properties": {
+    "dataSources": {
+      "syslog": [
+        {
+          "streams": ["Microsoft-Syslog"],
+          "facilityNames": ["auth", "cron", "syslog"],
+          "logLevels": ["Critical", "Alert", "Emergency"],
+          "name": "LinuxSyslogBase"
+        }
+      ]
+    },
+    "destinations": {
+      "logAnalytics": [
+        {
+          "workspaceResourceId": "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME>/providers/Microsoft.OperationalInsights/workspaces/<WORKSPACE_NAME>",
+          "name": "centralLogAnalyticsWorkspace"
+        }
+      ]
+    },
+    "dataFlows": [
+      {
+        "streams": ["Microsoft-Syslog"],
+        "destinations": ["centralLogAnalyticsWorkspace"]
+      }
+    ]
+  }
+}
+
