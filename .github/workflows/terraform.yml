@@ -1,3 +1,15 @@
+# Terraform CI Workflow for GitHub Actions
+# ----------------------------------------
+# This workflow:
+# - Authenticates securely with Azure using a Service Principal stored as a GitHub secret
+# - Formats, validates, and plans Terraform infrastructure
+# - Allows manual approval to apply changes via workflow_dispatch
+#
+# ⚠️ Security Note:
+# The file `creds.json` is created temporarily inside the GitHub Actions runner.
+# It is never committed to the repository, stored as an artifact, or exposed publicly.
+# The runner is ephemeral and destroyed after the job completes.
+
 name: Terraform CI
 
 on:
@@ -5,17 +17,12 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
 
 jobs:
   terraform:
     name: Terraform Workflow
     runs-on: ubuntu-latest
-
-    env:
-      ARM_CLIENT_ID: ${{ secrets.AZURE_CREDENTIALS }}
-      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CREDENTIALS }}
-      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_CREDENTIALS }}
-      ARM_TENANT_ID: ${{ secrets.AZURE_CREDENTIALS }}
 
     steps:
       - name: Checkout code
@@ -23,6 +30,13 @@ jobs:
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
+
+      - name: Authenticate with Azure
+        run: |
+          echo "${{ secrets.AZURE_CREDENTIALS }}" > creds.json
+          az login --service-principal --sdk-auth --username $(jq -r .clientId creds.json) \
+            --password $(jq -r .clientSecret creds.json) \
+            --tenant $(jq -r .tenantId creds.json)
 
       - name: Terraform Format
         run: terraform fmt -check -recursive
@@ -41,8 +55,13 @@ jobs:
         with:
           name: terraform-plan
           path: tfplan
-      
+
       - name: Terraform Apply (manual approval)
         if: github.event_name == 'workflow_dispatch'
-        run: terraform apply tfplan
-
+        run: |
+          if [ -f tfplan ]; then
+            terraform apply -auto-approve tfplan
+          else
+            echo "Plan file not found. Skipping apply."
+            exit 1
+          fi
