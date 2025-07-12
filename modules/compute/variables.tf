@@ -1,7 +1,7 @@
 variable "vm_name" {}
 variable "vm_size" {}
 variable "admin_username" {}
-variable "ssh_public_key_path" {}
+variable "ssh_public_key_content" {}
 variable "cloud_init_path" {}
 variable "location" {}
 variable "resource_group_name" {}

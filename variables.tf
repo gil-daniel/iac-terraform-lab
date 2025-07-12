@@ -14,9 +14,9 @@ variable "admin_username" {
   description = "VM admin username"
 }
 
-variable "ssh_public_key_path" {
+variable "ssh_public_key_content" {
   type        = string
-  description = "Path to the SSH public key"
+  description = "Content of the SSH public key"
 }
 variable "subscription_id" {
   type        = string

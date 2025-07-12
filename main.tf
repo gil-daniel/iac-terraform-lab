@@ -26,15 +26,17 @@ module "security" {
 }
 
 module "compute" {
-  source              = "./modules/compute"
-  vm_name             = "vm-demo"
-  vm_size             = "Standard_B1s"
-  admin_username      = var.admin_username
-  ssh_public_key_path = var.ssh_public_key_path
-  cloud_init_path     = "cloud-init.yaml"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = module.network.subnet_id
-  public_ip_name      = "public-ip-demo"
-  nic_name            = "nic-demo"
+  source                  = "./modules/compute"
+  vm_name                 = "vm-demo"
+  vm_size                 = "Standard_B1s"
+  admin_username          = var.admin_username
+  ssh_public_key_content  = var.ssh_public_key_content
+  cloud_init_path         = "cloud-init.yaml"
+  location                = var.location
+  resource_group_name     = azurerm_resource_group.rg.name
+  subnet_id               = module.network.subnet_id
+  public_ip_name          = "public-ip-demo"
+  nic_name                = "nic-demo"
+}
+
 }
