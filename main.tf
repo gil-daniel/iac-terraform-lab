@@ -38,3 +38,11 @@ module "compute" {
   public_ip_name          = "public-ip-demo"
   nic_name                = "nic-demo"
 }
+
+module "monitoring" {
+  source              = "./modules/monitoring"
+  prefix              = "lab"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  vm_id               = module.compute.vm_id
+}
