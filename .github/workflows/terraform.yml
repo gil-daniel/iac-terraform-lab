@@ -6,8 +6,7 @@
 # - Allows manual approval to apply changes via workflow_dispatch
 #
 # ⚠️ Security Note:
-# The file `creds.json` is created temporarily inside the GitHub Actions runner.
-# It is never committed to the repository, stored as an artifact, or exposed publicly.
+# The Azure login step uses the official GitHub Action and does NOT expose credentials.
 # The runner is ephemeral and destroyed after the job completes.
 
 name: Terraform CI
@@ -28,14 +27,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
-
-      - name: Authenticate with Azure
-        run: |
-          echo '${{ secrets.AZURE_CREDENTIALS }}' > creds.json
-          az login --service-principal --sdk-auth --file creds.json
-
 
       - name: Terraform Format
         run: terraform fmt -check -recursive
