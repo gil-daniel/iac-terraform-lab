@@ -41,4 +41,8 @@ jobs:
         with:
           name: terraform-plan
           path: tfplan
+      
+      - name: Terraform Apply (manual approval)
+        if: github.event_name == 'workflow_dispatch'
+        run: terraform apply tfplan
 
