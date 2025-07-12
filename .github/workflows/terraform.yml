@@ -33,10 +33,9 @@ jobs:
 
       - name: Authenticate with Azure
         run: |
-          echo "${{ secrets.AZURE_CREDENTIALS }}" > creds.json
-          az login --service-principal --sdk-auth --username $(jq -r .clientId creds.json) \
-            --password $(jq -r .clientSecret creds.json) \
-            --tenant $(jq -r .tenantId creds.json)
+          echo '${{ secrets.AZURE_CREDENTIALS }}' > creds.json
+          az login --service-principal --sdk-auth --file creds.json
+
 
       - name: Terraform Format
         run: terraform fmt -check -recursive
