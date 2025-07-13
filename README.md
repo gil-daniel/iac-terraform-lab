@@ -2,20 +2,22 @@
 
 This project demonstrates how to provision a complete infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). It includes the creation of a resource group, virtual network, subnet, network interface, public IP, network security group (NSG), and a Linux virtual machine with NGINX installed automatically via `cloud-init`.
 
-> ✅ This project is fully modularized and uses a remote backend with Azure Storage.  
-> 🌐 The VM serves a web page via NGINX on a public IP.  
-> 🛠️ It is under continuous development and now includes CI/CD integration via GitHub Actions.
+> ✅ Fully modularized infrastructure with remote state storage in Azure Blob Storage  
+> 🌐 The VM serves a web page via NGINX on a public IP  
+> 📊 Includes monitoring integration with Azure Monitor Agent and Data Collection Rules (DCR)  
+> 🛠️ CI/CD enabled via GitHub Actions
 
 ---
 
 ## 🚀 What It Does
 
 - Creates a resource group in Azure  
-- Provisions a virtual network and subnet (via `network` module)  
-- Creates a Network Security Group with rules for SSH (22) and HTTP (80) (via `security` module)  
-- Deploys a Linux VM (Ubuntu 22.04 LTS) with public IP and NIC (via `compute` module)  
+- Provisions a virtual network and subnet (`network` module)  
+- Creates a Network Security Group with rules for SSH (22) and HTTP (80) (`security` module)  
+- Deploys a Linux VM (Ubuntu 22.04 LTS) with public IP and NIC (`compute` module)  
 - Configures SSH access using your public key  
 - Installs and starts NGINX using `cloud-init`  
+- Enables monitoring via Azure Monitor Agent and DCR (`monitoring` module + `null_resource`)  
 - Stores Terraform state remotely in Azure Blob Storage  
 - Outputs the VM's private and public IP addresses  
 
@@ -30,12 +32,17 @@ iac-terraform-lab/
 ├── main.tf                     # Root module calling all submodules
 ├── outputs.tf                  # Output values from modules
 ├── variables.tf                # Input variables
+├── terraform.tfvars            # Sensitive values (ignored by Git)
+├── dcr.json                    # Static Data Collection Rule (ignored by Git)
 ├── modules/
 │   ├── compute/                # VM, NIC, Public IP
 │   ├── network/                # VNet and Subnet
-│   └── security/               # NSG and subnet association
+│   ├── security/               # NSG and subnet association
+│   └── monitoring/             # Log Analytics workspace and diagnostics
+├── Makefile                    # CLI shortcuts for Terraform
 ├── .gitignore                  # Terraform-specific exclusions
 ├── README.md                   # Project documentation
+
 
 ```
 
@@ -78,19 +85,37 @@ iac-terraform-lab/
 
 ---
 
+## 📊 Monitoring Integration
+
+This project includes automated setup of Azure Monitor Agent using:
+
+* A static dcr.json file defining syslog collection rules
+
+* A null_resource block that:
+
+   * Assigns a managed identity to the VM
+
+   * Creates the Data Collection Rule (DCR)
+
+   * Associates the DCR with the VM
+
+Logs are sent to the Log Analytics workspace created by the `monitoring` module.
+
+---
+
 ## ⚙️ CI/CD with GitHub Actions
 
 This project includes a GitHub Actions workflow that automates Terraform operations:
 
 ## 🔄 What It Does
 
-   * Runs terraform fmt, validate, and plan on every push or pull request
+* Runs terraform fmt, validate, and plan on every push or pull request
 
-   * Allows manual execution of terraform apply via the Actions tab
+* Allows manual execution of terraform apply via the Actions tab
 
-   * Uses GitHub Secrets to securely inject sensitive variables
+* Uses GitHub Secrets to securely inject sensitive variables
 
-   * Authenticates with Azure using a Service Principal
+* Authenticates with Azure using a Service Principal
 
 ## 🔐 Required GitHub Secrets
 
@@ -131,9 +156,9 @@ make format     # Format code with terraform fmt
 
 After a successful apply, Terraform will output:
 
-   * vm_private_ip: Internal IP address of the VM
+* vm_private_ip: Internal IP address of the VM
 
-   * vm_public_ip: Public IP address to access the VM via SSH and HTTP
+* vm_public_ip: Public IP address to access the VM via SSH and HTTP
 
 ---
 
@@ -142,7 +167,8 @@ After a successful apply, Terraform will output:
 | ------ | -----------|
 | network | Creates VNet and Subnet |
 | security| Creates NSG and associates with Subnet |
-|compute | Creates Public IP, NIC, and Linux VM |
+| compute | Creates Public IP, NIC, and Linux VM |
+| monitoring | Creates Log Analytics workspace and diagnostic settings |
 
 ---
 
@@ -153,8 +179,8 @@ After a successful apply, Terraform will output:
 * [x] Configure remote backend with Azure Storage
 * [x] Modularize the infrastructure (vnet, vm, nsg, etc.)
 * [x] Integrate with CI/CD (GitHub Actions or Azure DevOps)
-* [ ] Create multiple environments (dev, staging, prod)
-* [ ] Add monitoring and alerting with Azure Monitor
+* [x] Add monitoring and alerting with Azure Monitor
+* [ ] Add alert rules and dashboards (planned Grafana integration)
 
 ---
 
