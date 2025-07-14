@@ -15,7 +15,6 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Prevent concurrent runs on the same branch
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
@@ -75,7 +74,6 @@ jobs:
             -lock=false \
             -input=false \
             -var="subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
-            -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
             -var="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
             -var="admin_username=${{ secrets.ADMIN_USERNAME }}" \
             -var="ssh_public_key_content=${{ secrets.SSH_PUBLIC_KEY_CONTENT }}" \
