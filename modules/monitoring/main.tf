@@ -23,3 +23,46 @@ resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
   # Ensures the workspace is created before applying diagnostics
   depends_on = [azurerm_log_analytics_workspace.law]
 }
+
+# Creates a Data Collection Rule (DCR) for syslog monitoring
+# This rule defines how logs are collected and routed to the Log Analytics Workspace
+resource "azurerm_monitor_data_collection_rule" "dcr" {
+  name                = "${var.prefix}-dcr-linux-syslog"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+
+  destinations {
+    log_analytics {
+      workspace_resource_id = var.workspace_resource_id  # Workspace ID passed from root module
+      name                  = "centralLogAnalyticsWorkspace"
+    }
+  }
+
+  data_sources {
+    syslog {
+      name           = "LinuxSyslogBase"
+      facility_names = ["auth", "cron", "syslog"]
+      log_levels     = ["Critical", "Alert", "Emergency"]
+      streams        = ["Microsoft-Syslog"]
+    }
+  }
+
+  data_flow {
+    streams     = ["Microsoft-Syslog"]
+    destinations = ["centralLogAnalyticsWorkspace"]
+  }
+
+  # Ensures the workspace is created before applying the DCR
+  depends_on = [azurerm_log_analytics_workspace.law]
+}
+
+# Associates the Data Collection Rule with the VM
+# This enables syslog collection from the VM to the Log Analytics Workspace
+resource "azurerm_monitor_data_collection_rule_association" "dcr_assoc" {
+  name                    = "${var.prefix}-dcr-assoc"
+  target_resource_id      = var.vm_id
+  data_collection_rule_id = azurerm_monitor_data_collection_rule.dcr.id
+
+  # Ensures the DCR is created before association
+  depends_on = [azurerm_monitor_data_collection_rule.dcr]
+}

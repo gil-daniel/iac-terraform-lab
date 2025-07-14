@@ -45,40 +45,12 @@ module "compute" {
   nic_name                = "nic-demo"                    # Name of the network interface
 }
 
-# Sets up monitoring resources: Log Analytics workspace and diagnostic settings
+# Sets up monitoring resources: Log Analytics workspace, diagnostic settings, and syslog collection
 module "monitoring" {
-  source              = "./modules/monitoring"
-  prefix              = "lab"                             # Prefix for naming resources
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  vm_id               = module.compute.vm_id              # VM ID used for diagnostics
-}
-
-# Assigns a managed identity to the VM and configures Azure Monitor via CLI
-# This block uses local-exec to apply a Data Collection Rule (DCR) and associate it with the VM
-resource "null_resource" "monitoring_setup" {
-  provisioner "local-exec" {
-    command = <<EOT
-      # Assigns a system-managed identity to the VM
-      az vm identity assign \
-        --name ${module.compute.vm_name} \
-        --resource-group ${azurerm_resource_group.rg.name}
-
-      # Creates a Data Collection Rule for syslog monitoring
-      az monitor data-collection rule create \
-        --name dcr-linux-syslog \
-        --resource-group ${azurerm_resource_group.rg.name} \
-        --location ${var.location} \
-        --rule-file dcr.json
-
-      # Associates the DCR with the VM to enable log collection
-      az monitor data-collection rule association create \
-        --name dcrAssoc \
-        --rule-id "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.Insights/dataCollectionRules/dcr-linux-syslog" \
-        --resource "/subscriptions/${var.subscription_id}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.Compute/virtualMachines/${module.compute.vm_name}"
-    EOT
-  }
-
-  # Ensures monitoring setup runs only after VM and monitoring resources are ready
-  depends_on = [module.compute, module.monitoring]
+  source                  = "./modules/monitoring"
+  prefix                  = "lab"                             # Prefix for naming resources
+  location                = var.location
+  resource_group_name     = var.resource_group_name
+  vm_id                   = module.compute.vm_id              # VM ID used for diagnostics
+  workspace_resource_id   = var.workspace_resource_id         # Workspace ID used for Data Collection Rule
 }

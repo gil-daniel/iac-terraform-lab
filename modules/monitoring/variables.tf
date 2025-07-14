@@ -22,3 +22,9 @@ variable "vm_id" {
   description = "ID of the virtual machine to monitor"
   type        = string
 }
+
+# Full Azure resource ID of the Log Analytics Workspace
+variable "workspace_resource_id" {
+  type        = string
+  description = "Resource ID of the Log Analytics Workspace used for monitoring"
+}
