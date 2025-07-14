@@ -15,6 +15,7 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Prevent concurrent runs on the same branch
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
@@ -51,7 +52,7 @@ jobs:
             backend "azurerm" {
               subscription_id      = "${{ secrets.SUBSCRIPTION_ID }}"
               tenant_id            = "${{ secrets.AZURE_TENANT_ID }}"
-              resource_group_name  = "${{ secrets.RESOURCE_GROUP_NAME }}"
+              resource_group_name  = "${{ secrets.BACKEND_RG_NAME }}"
               storage_account_name = "${{ secrets.STORAGE_ACCOUNT_NAME }}"
               container_name       = "tfstate"
               key                  = "terraform.tfstate"
@@ -122,7 +123,7 @@ jobs:
             backend "azurerm" {
               subscription_id      = "${{ secrets.SUBSCRIPTION_ID }}"
               tenant_id            = "${{ secrets.AZURE_TENANT_ID }}"
-              resource_group_name  = "${{ secrets.RESOURCE_GROUP_NAME }}"
+              resource_group_name  = "${{ secrets.BACKEND_RG_NAME }}"
               storage_account_name = "${{ secrets.STORAGE_ACCOUNT_NAME }}"
               container_name       = "tfstate"
               key                  = "terraform.tfstate"
