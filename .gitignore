@@ -8,3 +8,4 @@ terraform.tfplan
 .terraform.lock.hcl
 dcr.json
 dcr-expanded.json
+backend.tf
