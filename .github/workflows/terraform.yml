@@ -32,20 +32,26 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event_name == 'workflow_dispatch' }}
 
     steps:
+      # Checkout repository code
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
+      # Authenticate with Azure using Service Principal
       - name: 🔐 Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
+      # Install Terraform CLI
       - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
+      # Format Terraform files
       - name: 🧾 Terraform Format
         run: terraform fmt -recursive
 
+      # Dynamically generate backend.tf using GitHub Secrets
       - name: 🛠️ Generate backend.tf
         run: |
           cat > backend.tf <<EOF
@@ -59,16 +65,16 @@ jobs:
           }
           EOF
 
-      - name: 🔍 Debug backend.tf
-        run: cat backend.tf
-
+      # Initialize Terraform backend and modules
       - name: 🚀 Terraform Init
         run: terraform init
 
+      # Validate Terraform configuration
       - name: ✅ Terraform Validate
         run: terraform validate
 
-      - name: 📐 Terraform Plan (no lock)
+      # Generate execution plan using sensitive variables from secrets
+      - name: 📐 Terraform Plan
         run: |
           terraform plan \
           -lock=false \
@@ -76,8 +82,9 @@ jobs:
           -var="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
           -var="admin_username=${{ secrets.ADMIN_USERNAME }}" \
           -var="ssh_public_key_content=${{ secrets.SSH_PUBLIC_KEY_CONTENT }}" \
-          -var="subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
           -out=tfplan
+
+      # Upload plan artifact for later use
       - name: 📦 Upload Plan Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -91,23 +98,29 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' }}
 
     steps:
+      # Checkout repository code
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
+      # Download previously generated plan artifact
       - name: 📦 Download Plan Artifact
         uses: actions/download-artifact@v4
         with:
           name: terraform-plan
           path: .
 
+      # Authenticate with Azure using Service Principal
       - name: 🔐 Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
 
+      # Install Terraform CLI
       - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
+      # Regenerate backend.tf to match plan context
       - name: 🛠️ Generate backend.tf
         run: |
           cat > backend.tf <<EOF
@@ -120,8 +133,11 @@ jobs:
             }
           }
           EOF
+
+      # Initialize Terraform backend
       - name: 🚀 Terraform Init
         run: terraform init
 
+      # Apply the previously generated plan
       - name: ✅ Terraform Apply
         run: terraform apply -auto-approve tfplan
