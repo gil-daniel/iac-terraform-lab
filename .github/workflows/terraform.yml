@@ -44,7 +44,7 @@ jobs:
 
       # Ensure Azure CLI uses the right subscription for `terraform init`
       - name: 📌 Set Azure subscription
-        run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
+        run: az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
       # Install Terraform CLI
       - name: ⚙️ Set up Terraform
@@ -120,7 +120,7 @@ jobs:
 
       # Ensure Azure CLI uses the right subscription for `terraform init`
       - name: 📌 Set Azure subscription
-        run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
+        run: az account set --subscription "$ARM_SUBSCRIPTION_ID"
 
       # Install Terraform CLI
       - name: ⚙️ Set up Terraform
