@@ -1,11 +1,11 @@
 # Terraform CI Workflow for GitHub Actions
 # ----------------------------------------
 # This workflow:
-# - Authenticates with Azure using a Service Principal JSON (creds)
-# - Explicitly sets the Azure subscription context
-# - Dynamically generates backend.tf for remote state
-# - Formats, validates, and plans Terraform infra
-# - Applies changes manually via workflow_dispatch
+# - Performs Azure CLI login using a Service Principal
+# - Sets subscription context explicitly
+# - Generates backend.tf for remote state
+# - Formats, validates, and plans Terraform infrastucture
+# - Applies changes via manual workflow_dispatch
 
 name: Terraform CI
 
@@ -16,41 +16,46 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Prevents concurrent runs on the same branch
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   plan:
-    name: Terraform Plan
+    name: Plan
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout repository code
-      - name: 📥 Checkout code
+      # Checkout repository code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Authenticate with Azure using SP JSON (creds)
-      - name: 🔐 Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # Azure CLI login with service principal credentials
+      - name: Azure CLI login (service principal)
+        run: |
+          az login --service-principal \
+            --username "${{ secrets.AZURE_CLIENT_ID }}" \
+            --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
+            --tenant "${{ secrets.AZURE_TENANT_ID }}"
 
-      # 3. Set CLI to the correct subscription
-      - name: 📌 Set Azure subscription
+      # Set the correct subscription context
+      - name: Set Azure subscription
         run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
 
-      # 4. Install Terraform CLI
-      - name: ⚙️ Set up Terraform
+      # Verify that the CLI is using the right subscription
+      - name: Verify subscription
+        run: az account show
+
+      # Install Terraform CLI
+      - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # 5. Format Terraform files
-      - name: 🧾 Terraform Format
+      # Format Terraform files
+      - name: Terraform fmt
         run: terraform fmt -recursive
 
-      # 6. Generate backend.tf dynamically
-      - name: 🛠️ Generate backend.tf
+      # Generate backend.tf dynamically
+      - name: Generate backend.tf
         run: |
           cat > backend.tf <<EOF
           terraform {
@@ -63,16 +68,16 @@ jobs:
           }
           EOF
 
-      # 7. Initialize Terraform backend and modules
-      - name: 🚀 Terraform Init
+      # Initialize Terraform backend and modules
+      - name: Terraform init
         run: terraform init
 
-      # 8. Validate Terraform configuration
-      - name: ✅ Terraform Validate
+      # Validate the Terraform configuration
+      - name: Terraform validate
         run: terraform validate
 
-      # 9. Generate execution plan
-      - name: 📐 Terraform Plan
+      # Create execution plan
+      - name: Terraform plan
         run: |
           terraform plan \
             -lock=false \
@@ -82,47 +87,53 @@ jobs:
             -var="ssh_public_key_content=${{ secrets.SSH_PUBLIC_KEY_CONTENT }}" \
             -out=tfplan
 
-      # 10. Upload plan artifact
-      - name: 📦 Upload Plan Artifact
+      # Upload the plan artifact
+      - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
           path: tfplan
 
   apply:
-    name: Terraform Apply
+    name: Apply
     runs-on: ubuntu-latest
     needs: plan
     if: ${{ github.event_name == 'workflow_dispatch' }}
 
     steps:
-      # 1. Checkout repository code
-      - name: 📥 Checkout code
+      # Checkout repository code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Download plan artifact
-      - name: 📦 Download Plan Artifact
+      # Download the plan artifact
+      - name: Download plan artifact
         uses: actions/download-artifact@v4
         with:
           name: terraform-plan
           path: .
 
-      # 3. Authenticate with Azure using SP JSON (creds)
-      - name: 🔐 Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      # Azure CLI login with service principal credentials
+      - name: Azure CLI login (service principal)
+        run: |
+          az login --service-principal \
+            --username "${{ secrets.AZURE_CLIENT_ID }}" \
+            --password "${{ secrets.AZURE_CLIENT_SECRET }}" \
+            --tenant "${{ secrets.AZURE_TENANT_ID }}"
 
-      # 4. Set CLI to the correct subscription
-      - name: 📌 Set Azure subscription
+      # Set the correct subscription context
+      - name: Set Azure subscription
         run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
 
-      # 5. Install Terraform CLI
-      - name: ⚙️ Set up Terraform
+      # Verify that the CLI is using the right subscription
+      - name: Verify subscription
+        run: az account show
+
+      # Install Terraform CLI
+      - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # 6. Regenerate backend.tf
-      - name: 🛠️ Generate backend.tf
+      # Regenerate backend.tf
+      - name: Generate backend.tf
         run: |
           cat > backend.tf <<EOF
           terraform {
@@ -135,10 +146,10 @@ jobs:
           }
           EOF
 
-      # 7. Initialize Terraform backend
-      - name: 🚀 Terraform Init
+      # Initialize Terraform backend and modules
+      - name: Terraform init
         run: terraform init
 
-      # 8. Apply the generated plan
-      - name: ✅ Terraform Apply
+      # Apply the previously generated plan
+      - name: Terraform apply
         run: terraform apply -auto-approve tfplan
