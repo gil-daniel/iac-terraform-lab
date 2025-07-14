@@ -59,6 +59,9 @@ jobs:
           }
           EOF
 
+      - name: 🔍 Debug backend.tf
+        run: cat backend.tf
+
       - name: 🚀 Terraform Init
         run: terraform init
 
@@ -75,7 +78,6 @@ jobs:
           -var="ssh_public_key_content=${{ secrets.SSH_PUBLIC_KEY_CONTENT }}" \
           -var="subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
           -out=tfplan
-
       - name: 📦 Upload Plan Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -118,7 +120,6 @@ jobs:
             }
           }
           EOF
-
       - name: 🚀 Terraform Init
         run: terraform init
 
