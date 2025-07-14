@@ -1,7 +1,13 @@
 #cloud-config
+
+# Ensures the package list is updated before installation
 package_update: true
+
+# Installs NGINX on the VM
 packages:
   - nginx
+
+# Enables NGINX to start on boot and starts the service immediately
 runcmd:
-  - systemctl enable nginx
-  - systemctl start nginx
+  - systemctl enable nginx   # Makes sure NGINX starts automatically on reboot
+  - systemctl start nginx    # Starts the NGINX service right after provisioning
