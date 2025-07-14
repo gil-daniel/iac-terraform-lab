@@ -1,7 +1,7 @@
 # 🚀 Terraform Azure Lab: Provisioning a Linux VM with Monitoring & CI/CD
 ![Terraform CI](https://github.com/gil-daniel/iac-terraform-lab/actions/workflows/terraform.yml/badge.svg)
 
-Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to provision a complete cloud infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). This lab sets up a Linux virtual machine with NGINX, full networking, monitoring, and CI/CD integration.
+Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to provision a complete cloud infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). This lab sets up a Linux virtual machine with NGINX, full networking, monitoring via Data Collection Rules (DCR), and CI/CD integration.
 
 > ✅ **Modularized infrastructure** with remote state storage in Azure Blob Storage  
 > 🌐 **Public-facing VM** serving a web page via NGINX  
@@ -18,7 +18,7 @@ Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to 
 - Deploys a Linux VM (Ubuntu 22.04 LTS) with public IP and NIC (`compute` module)  
 - Configures SSH access using your public key  
 - Installs and starts NGINX using `cloud-init`  
-- Enables monitoring via Azure Monitor Agent and DCR (`monitoring` module + `null_resource`)  
+- Enables monitoring via Azure Monitor Agent and Terraform-native Data Collection Rule (`monitoring` module) 
 - Stores Terraform state remotely in Azure Blob Storage  
 - Outputs the VM's private and public IP addresses  
 
@@ -28,18 +28,17 @@ Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to 
 
 ```plaintext
 iac-terraform-lab/
-├── backend.tf                  # Remote backend configuration (Azure Storage)
+├── backend.tf                  # Remote backend configuration (generated dynamically)
 ├── cloud-init.yaml             # Cloud-init script to install NGINX
 ├── main.tf                     # Root module calling all submodules
 ├── outputs.tf                  # Output values from modules
 ├── variables.tf                # Input variables
 ├── terraform.tfvars            # Sensitive values (ignored by Git)
-├── dcr.json                    # Static Data Collection Rule (ignored by Git)
 ├── modules/
 │   ├── compute/                # VM, NIC, Public IP
 │   ├── network/                # VNet and Subnet
 │   ├── security/               # NSG and subnet association
-│   └── monitoring/             # Log Analytics workspace and diagnostics
+│   └── monitoring/             # Log Analytics workspace, diagnostics, and DCR
 ├── Makefile                    # CLI shortcuts for Terraform
 ├── .gitignore                  # Terraform-specific exclusions
 ├── README.md                   # Project documentation
@@ -92,13 +91,11 @@ This project includes built-in observability using **Azure Monitor Agent** and *
 
 Monitoring is configured automatically through:
 
-- A static `dcr.json` file that defines syslog collection rules
-- A `null_resource` block that:
-  - Assigns a managed identity to the VM
-  - Creates the **Data Collection Rule (DCR)**
-  - Associates the DCR with the VM
+- A Terraform-managed Data Collection Rule (DCR) that defines syslog collection
+- An association between the VM and the DCR
+- A ****Log Analytics Workspace** created within the `monitoring` module
 
-📥 Logs are sent to the **Log Analytics Workspace** created by the `monitoring` module.
+📥 Logs are sent to the workspace and can be queried via Azure Monitor or Kusto.
 
 ---
 
@@ -122,6 +119,9 @@ To enable secure and automated deployments via GitHub Actions, you'll need to co
 | Secret Name              | Description                              |
 |--------------------------|------------------------------------------|
 | `AZURE_CREDENTIALS`      | JSON credentials for Azure login (Service Principal) |
+| `AZURE_TENANT_KEY`       | Your Azure Tenant Key                    |
+| `BACKEND_RG_NAME`        | Resource Group that contains the backend storage|
+| `STORAGE_ACCOUNT_NAME`   | Azure Storage Account Name for remote state |
 | `RESOURCE_GROUP_NAME`    | Name of the resource group to deploy into |
 | `ADMIN_USERNAME`         | Username for SSH access to the VM         |
 | `SSH_PUBLIC_KEY_CONTENT` | Content of your SSH public key            |
@@ -176,7 +176,7 @@ This project is fully modularized for clarity and reusability. Each module handl
 | `network`   | Creates the Virtual Network (VNet) and Subnet       |
 | `security`  | Creates the Network Security Group (NSG) and associates it with the Subnet |
 | `compute`   | Provisions the Public IP, Network Interface (NIC), and Linux VM |
-| `monitoring`| Sets up Log Analytics Workspace and diagnostic settings for VM monitoring |
+| `monitoring`| Sets up Log Analytics Workspace, diagnostic settings and DCR for syslog monitoring |
 
 ---
 
