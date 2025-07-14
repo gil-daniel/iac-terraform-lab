@@ -42,6 +42,10 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      # Ensure Azure CLI uses the right subscription for `terraform init`
+      - name: 📌 Set Azure subscription
+        run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
+
       # Install Terraform CLI
       - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
@@ -113,7 +117,10 @@ jobs:
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-          subscription-id: ${{ secrets.SUBSCRIPTION_ID }}
+
+      # Ensure Azure CLI uses the right subscription for `terraform init`
+      - name: 📌 Set Azure subscription
+        run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
 
       # Install Terraform CLI
       - name: ⚙️ Set up Terraform
