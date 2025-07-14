@@ -2,14 +2,13 @@
 # ----------------------------------------
 # This workflow:
 # - Authenticates securely with Azure using a Service Principal stored as a GitHub secret
+# - Dynamically generates backend.tf using GitHub Secrets
 # - Formats, validates, and plans Terraform infrastructure
 # - Allows manual approval to apply changes via workflow_dispatch
 #
 # ⚠️ Security Note:
-# The Azure login step uses the official GitHub Action and does NOT expose credentials.
+# The backend.tf file is generated at runtime and never stored in the repository.
 # The runner is ephemeral and destroyed after the job completes.
-# The plan job uses -lock=false to avoid state lock errors in CI runs.
-# The apply job runs only via manual dispatch and respects locking.
 # Variable values are injected securely via GitHub Secrets.
 
 name: Terraform CI
@@ -21,6 +20,7 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Prevents concurrent runs on the same branch
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
@@ -32,27 +32,40 @@ jobs:
     if: ${{ github.event_name != 'workflow_dispatch' || github.event_name == 'workflow_dispatch' }}
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Azure Login
+      - name: 🔐 Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Set up Terraform
+      - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Terraform Format
+      - name: 🧾 Terraform Format
         run: terraform fmt -recursive
 
-      - name: Terraform Init
+      - name: 🛠️ Generate backend.tf
+        run: |
+          cat > backend.tf <<EOF
+          terraform {
+            backend "azurerm" {
+              resource_group_name  = "${{ secrets.RESOURCE_GROUP_NAME }}"
+              storage_account_name = "${{ secrets.STORAGE_ACCOUNT_NAME }}"
+              container_name       = "tfstate"
+              key                  = "terraform.tfstate"
+            }
+          }
+          EOF
+
+      - name: 🚀 Terraform Init
         run: terraform init
 
-      - name: Terraform Validate
+      - name: ✅ Terraform Validate
         run: terraform validate
 
-      - name: Terraform Plan (no lock)
+      - name: 📐 Terraform Plan (no lock)
         run: |
           terraform plan \
           -lock=false \
@@ -63,7 +76,7 @@ jobs:
           -var="subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
           -out=tfplan
 
-      - name: Upload Plan Artifact
+      - name: 📦 Upload Plan Artifact
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
@@ -76,25 +89,38 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' }}
 
     steps:
-      - name: Checkout code
+      - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      - name: Download Plan Artifact
+      - name: 📦 Download Plan Artifact
         uses: actions/download-artifact@v4
         with:
           name: terraform-plan
           path: .
 
-      - name: Azure Login
+      - name: 🔐 Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Set up Terraform
+      - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Terraform Init
+      - name: 🛠️ Generate backend.tf
+        run: |
+          cat > backend.tf <<EOF
+          terraform {
+            backend "azurerm" {
+              resource_group_name  = "${{ secrets.RESOURCE_GROUP_NAME }}"
+              storage_account_name = "${{ secrets.STORAGE_ACCOUNT_NAME }}"
+              container_name       = "tfstate"
+              key                  = "terraform.tfstate"
+            }
+          }
+          EOF
+
+      - name: 🚀 Terraform Init
         run: terraform init
 
-      - name: Terraform Apply
+      - name: ✅ Terraform Apply
         run: terraform apply -auto-approve tfplan
