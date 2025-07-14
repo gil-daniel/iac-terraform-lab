@@ -77,11 +77,12 @@ Before you get started, make sure you have the following tools and access:
    terraform apply
    ```
 5. After deployment, access the VM:
-   * SSH:
+   * **SSH:**
     ```bash
     ssh <your-username>@<vm_public_ip>
    ```
-   * Web browser: Visit `http://<vm_public_ip>` to see the default NGINX welcome page.
+   * **Web browser:**  
+   Visit `http://<vm_public_ip>` to see the default NGINX welcome page.
 
 ---
 
@@ -191,6 +192,17 @@ This lab already covers the essentials — but here’s what’s planned or in p
 * [x] Add monitoring and alerting with Azure Monitor  
 * [ ] Add alert rules and dashboards (planned Grafana integration)
 
+---
+
+## 🛡️ Security Notice
+
+> ⚠️ On **2025-07-14**, the Git history of this repository was rewritten to permanently remove a previously committed `backend.tf` file.  
+> This was done to protect infrastructure details and follow best practices for open source projects.  
+> If you cloned this repository before that date, it's recommended to do a fresh clone to avoid inconsistencies:
+
+```bash
+git clone git@github.com:gil-daniel/iac-terraform-lab.git
+```
 ---
 
 ## 🧑‍💻 Author
