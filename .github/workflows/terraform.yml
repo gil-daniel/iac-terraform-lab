@@ -1,10 +1,11 @@
 # Terraform CI Workflow for GitHub Actions
 # ----------------------------------------
 # This workflow:
-# - Authenticates with Azure using explicit SP fields
+# - Authenticates with Azure using a Service Principal JSON (creds)
+# - Explicitly sets the Azure subscription context
 # - Dynamically generates backend.tf for remote state
-# - Formats, validates and plans Terraform infra
-# - Applies manual changes via workflow_dispatch
+# - Formats, validates, and plans Terraform infra
+# - Applies changes manually via workflow_dispatch
 
 name: Terraform CI
 
@@ -15,7 +16,7 @@ on:
   pull_request:
   workflow_dispatch:
 
-# Prevent concurrent runs on the same branch
+# Prevents concurrent runs on the same branch
 concurrency:
   group: terraform-${{ github.ref }}
   cancel-in-progress: true
@@ -26,28 +27,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout repository code
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
-      # 2. Azure Login using explicit SP parameters
+      # 2. Authenticate with Azure using SP JSON (creds)
       - name: 🔐 Azure Login
         uses: azure/login@v1
         with:
-          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
-          client-secret:   ${{ secrets.AZURE_CLIENT_SECRET }}
-          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 3. Install Terraform CLI
+      # 3. Set CLI to the correct subscription
+      - name: 📌 Set Azure subscription
+        run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
+
+      # 4. Install Terraform CLI
       - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # 4. Format Terraform files
+      # 5. Format Terraform files
       - name: 🧾 Terraform Format
         run: terraform fmt -recursive
 
-      # 5. Generate backend.tf dynamically
+      # 6. Generate backend.tf dynamically
       - name: 🛠️ Generate backend.tf
         run: |
           cat > backend.tf <<EOF
@@ -61,15 +63,15 @@ jobs:
           }
           EOF
 
-      # 6. Terraform Init (remote state + modules)
+      # 7. Initialize Terraform backend and modules
       - name: 🚀 Terraform Init
         run: terraform init
 
-      # 7. Validate configuration
+      # 8. Validate Terraform configuration
       - name: ✅ Terraform Validate
         run: terraform validate
 
-      # 8. Plan execution
+      # 9. Generate execution plan
       - name: 📐 Terraform Plan
         run: |
           terraform plan \
@@ -80,7 +82,7 @@ jobs:
             -var="ssh_public_key_content=${{ secrets.SSH_PUBLIC_KEY_CONTENT }}" \
             -out=tfplan
 
-      # 9. Upload plan artifact
+      # 10. Upload plan artifact
       - name: 📦 Upload Plan Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -94,7 +96,7 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' }}
 
     steps:
-      # 1. Checkout code
+      # 1. Checkout repository code
       - name: 📥 Checkout code
         uses: actions/checkout@v3
 
@@ -105,20 +107,21 @@ jobs:
           name: terraform-plan
           path: .
 
-      # 3. Azure Login again with explicit SP fields
+      # 3. Authenticate with Azure using SP JSON (creds)
       - name: 🔐 Azure Login
         uses: azure/login@v1
         with:
-          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
-          client-secret:   ${{ secrets.AZURE_CLIENT_SECRET }}
-          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 4. Install Terraform CLI
+      # 4. Set CLI to the correct subscription
+      - name: 📌 Set Azure subscription
+        run: az account set --subscription "${{ secrets.SUBSCRIPTION_ID }}"
+
+      # 5. Install Terraform CLI
       - name: ⚙️ Set up Terraform
         uses: hashicorp/setup-terraform@v2
 
-      # 5. Regenerate backend.tf
+      # 6. Regenerate backend.tf
       - name: 🛠️ Generate backend.tf
         run: |
           cat > backend.tf <<EOF
@@ -132,10 +135,10 @@ jobs:
           }
           EOF
 
-      # 6. Terraform Init
+      # 7. Initialize Terraform backend
       - name: 🚀 Terraform Init
         run: terraform init
 
-      # 7. Apply the generated plan
+      # 8. Apply the generated plan
       - name: ✅ Terraform Apply
         run: terraform apply -auto-approve tfplan
