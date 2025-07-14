@@ -1,11 +1,12 @@
-# Terraform Azure Lab – Linux VM Provisioning
+# 🚀 Terraform Azure Lab: Provisioning a Linux VM with Monitoring & CI/CD
+![Terraform CI](https://github.com/gil-daniel/iac-terraform-lab/actions/workflows/terraform.yml/badge.svg)
 
-This project demonstrates how to provision a complete infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). It includes the creation of a resource group, virtual network, subnet, network interface, public IP, network security group (NSG), and a Linux virtual machine with NGINX installed automatically via `cloud-init`.
+Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to provision a complete cloud infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). This lab sets up a Linux virtual machine with NGINX, full networking, monitoring, and CI/CD integration.
 
-> ✅ Fully modularized infrastructure with remote state storage in Azure Blob Storage  
-> 🌐 The VM serves a web page via NGINX on a public IP  
-> 📊 Includes monitoring integration with Azure Monitor Agent and Data Collection Rules (DCR)  
-> 🛠️ CI/CD enabled via GitHub Actions
+> ✅ **Modularized infrastructure** with remote state storage in Azure Blob Storage  
+> 🌐 **Public-facing VM** serving a web page via NGINX  
+> 📊 **Built-in monitoring** using Azure Monitor Agent and Data Collection Rules (DCR)  
+> ⚙️ **CI/CD automation** via GitHub Actions
 
 ---
 
@@ -42,37 +43,36 @@ iac-terraform-lab/
 ├── Makefile                    # CLI shortcuts for Terraform
 ├── .gitignore                  # Terraform-specific exclusions
 ├── README.md                   # Project documentation
-
-
 ```
-
 ---
 
 ## 🧰 Requirements
 
-- [Terraform CLI](https://developer.hashicorp.com/terraform/downloads)  
-- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)  
-- An Azure subscription  
-- An existing SSH key pair (e.g. `~/.ssh/id_ed25519.pub`)  
+Before you get started, make sure you have the following tools and access:
+
+- [Terraform CLI](https://developer.hashicorp.com/terraform/downloads) – for provisioning infrastructure  
+- [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) – to authenticate and manage Azure resources  
+- An active Azure subscription  
+- An existing SSH key pair (e.g. `~/.ssh/id_ed25519.pub`) – used for secure access to the VM
 
 ---
 
 ## 🛠️ Usage
 
-1. Authenticate with Azure:
+1. **Authenticate with Azure:**
 
    ```bash
    az login
    ```
-2. Initialize Terraform:
+2. **Initialize Terraform** Set up the working directory and download required providers:
    ```bash
    terraform init
    ```
-3. Review the execution plan:
+3. **Review the execution plan** See what Terraform will do before applying changes:
    ```bash
     terraform plan
    ```
-4. Apply the configuration 
+4. **Apply the configuration** Provision the infrastructure:
    ```bash
    terraform apply
    ```
@@ -87,58 +87,61 @@ iac-terraform-lab/
 
 ## 📊 Monitoring Integration
 
-This project includes automated setup of Azure Monitor Agent using:
+This project includes built-in observability using **Azure Monitor Agent** and **Log Analytics**.
 
-* A static dcr.json file defining syslog collection rules
+Monitoring is configured automatically through:
 
-* A null_resource block that:
+- A static `dcr.json` file that defines syslog collection rules
+- A `null_resource` block that:
+  - Assigns a managed identity to the VM
+  - Creates the **Data Collection Rule (DCR)**
+  - Associates the DCR with the VM
 
-   * Assigns a managed identity to the VM
-
-   * Creates the Data Collection Rule (DCR)
-
-   * Associates the DCR with the VM
-
-Logs are sent to the Log Analytics workspace created by the `monitoring` module.
+📥 Logs are sent to the **Log Analytics Workspace** created by the `monitoring` module.
 
 ---
 
 ## ⚙️ CI/CD with GitHub Actions
 
-This project includes a GitHub Actions workflow that automates Terraform operations:
+This project includes a GitHub Actions workflow that automates Terraform operations — making infrastructure deployment smoother and safer.
 
-## 🔄 What It Does
+### 🔄 CI/CD Workflow Overview
 
-* Runs terraform fmt, validate, and plan on every push or pull request
+- Runs `terraform fmt`, `validate`, and `plan` on every push or pull request  
+- Allows manual execution of `terraform apply` via the Actions tab  
+- Uses **GitHub Secrets** to securely inject sensitive variables  
+- Authenticates with Azure using a **Service Principal**
 
-* Allows manual execution of terraform apply via the Actions tab
-
-* Uses GitHub Secrets to securely inject sensitive variables
-
-* Authenticates with Azure using a Service Principal
+---
 
 ## 🔐 Required GitHub Secrets
 
-| Secret Name | Description |
-| ----------- | ----------- |
-|`AZURE_CREDENTIALS`| JSON credentials for Azure login |
-|`RESOURCE_GROUP_NAME`| Name of the Resource group |
-|`ADMIN_USERNAME`| Username for the VM | 
-|`SSH_PUBLIC_KEY_CONTENT`| Content of your SSH Public Key |   
-|`SUBSCRIPTION_ID`| Azure Subscription ID |
-|`LOCATION`| Azure region (e.g `westeurope`) |
+To enable secure and automated deployments via GitHub Actions, you'll need to configure the following secrets in your repository settings:
+
+| Secret Name              | Description                              |
+|--------------------------|------------------------------------------|
+| `AZURE_CREDENTIALS`      | JSON credentials for Azure login (Service Principal) |
+| `RESOURCE_GROUP_NAME`    | Name of the resource group to deploy into |
+| `ADMIN_USERNAME`         | Username for SSH access to the VM         |
+| `SSH_PUBLIC_KEY_CONTENT` | Content of your SSH public key            |
+| `SUBSCRIPTION_ID`        | Your Azure Subscription ID                |
+| `LOCATION`               | Azure region (e.g. `westeurope`)          |
 
 ## ▶️ How to Use
 
-   * Push changes to any branch → triggers `terraform plan`
+Once your GitHub Secrets are configured, here’s how the CI/CD workflow behaves:
 
-   * Go to Actions → Terraform CI → Run workflow → triggers `terraform apply`
+- **Push changes to any branch** → automatically runs `terraform plan`  
+- **Manual trigger via Actions tab** → runs `terraform apply` on demand
+
+This setup ensures safe, traceable infrastructure changes with minimal manual effort.
 
 ---
 
 ## ⚙️ Using the Makefile (optional)
 
-This project includes a `Makefile` to simplify common Terraform commands:
+To streamline your workflow, this project includes a `Makefile` with shortcuts for common Terraform commands:
+
 ```bash
 make init       # Initialize Terraform
 make plan       # Show execution plan
@@ -148,47 +151,54 @@ make output     # Show output values
 make validate   # Validate Terraform files
 make format     # Format code with terraform fmt
 ```
->You can still run Terraform manually if you prefer
+>You can still run Terraform manually if you prefer, the Makefile just makes things faster and cleaner.
 
 ---
 
 ## 🌐 Outputs
 
-After a successful apply, Terraform will output:
+After a successful `terraform apply`, you'll see the following output values — useful for accessing and managing your VM:
 
-* vm_private_ip: Internal IP address of the VM
-
-* vm_public_ip: Public IP address to access the VM via SSH and HTTP
+| Output Name     | Description                              |
+|-----------------|------------------------------------------|
+| `vm_private_ip` | Internal IP address of the VM            |
+| `vm_public_ip`  | Public IP address for SSH and HTTP access |
 
 ---
 
 ## 📦 Modules
-| Module | Description|
-| ------ | -----------|
-| network | Creates VNet and Subnet |
-| security| Creates NSG and associates with Subnet |
-| compute | Creates Public IP, NIC, and Linux VM |
-| monitoring | Creates Log Analytics workspace and diagnostic settings |
+
+This project is fully modularized for clarity and reusability. Each module handles a specific part of the infrastructure:
+
+| Module      | Description                                         |
+|-------------|-----------------------------------------------------|
+| `network`   | Creates the Virtual Network (VNet) and Subnet       |
+| `security`  | Creates the Network Security Group (NSG) and associates it with the Subnet |
+| `compute`   | Provisions the Public IP, Network Interface (NIC), and Linux VM |
+| `monitoring`| Sets up Log Analytics Workspace and diagnostic settings for VM monitoring |
 
 ---
 
-📌 Next Steps
+## 📌 Next Steps
 
-* [x] Add a public IP and NSG to allow SSH/HTTP access
-* [x] Install NGINX using cloud-init
-* [x] Configure remote backend with Azure Storage
-* [x] Modularize the infrastructure (vnet, vm, nsg, etc.)
-* [x] Integrate with CI/CD (GitHub Actions or Azure DevOps)
-* [x] Add monitoring and alerting with Azure Monitor
+This lab already covers the essentials — but here’s what’s planned or in progress:
+
+* [x] Add a public IP and NSG to allow SSH/HTTP access  
+* [x] Install NGINX using cloud-init  
+* [x] Configure remote backend with Azure Storage  
+* [x] Modularize the infrastructure (vnet, vm, nsg, etc.)  
+* [x] Integrate with CI/CD (GitHub Actions or Azure DevOps)  
+* [x] Add monitoring and alerting with Azure Monitor  
 * [ ] Add alert rules and dashboards (planned Grafana integration)
 
 ---
 
-🧑‍💻 Author
+## 🧑‍💻 Author
 
-Daniel Gil
+**Daniel Gil**
 
 ---
-📄 License
 
-This project is licensed under the MIT License.
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
