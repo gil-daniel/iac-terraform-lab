@@ -9,3 +9,4 @@ terraform.tfplan
 dcr.json
 dcr-expanded.json
 backend.tf
+git-filter-repo/
