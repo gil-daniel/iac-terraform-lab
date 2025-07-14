@@ -52,5 +52,4 @@ module "monitoring" {
   location                = var.location
   resource_group_name     = var.resource_group_name
   vm_id                   = module.compute.vm_id              # VM ID used for diagnostics
-  workspace_resource_id   = var.workspace_resource_id         # Workspace ID used for Data Collection Rule
 }

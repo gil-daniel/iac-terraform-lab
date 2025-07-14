@@ -78,7 +78,6 @@ jobs:
             -var="resource_group_name=${{ secrets.RESOURCE_GROUP_NAME }}" \
             -var="admin_username=${{ secrets.ADMIN_USERNAME }}" \
             -var="ssh_public_key_content=${{ secrets.SSH_PUBLIC_KEY_CONTENT }}" \
-            -var="workspace_resource_id=${{ secrets.LOG_ANALYTICS_WORKSPACE_ID }}" \
             -out=tfplan
 
       # 9. Upload plan artifact

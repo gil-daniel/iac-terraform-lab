@@ -34,11 +34,3 @@ variable "subscription_id" {
   description = "Azure Subscription ID"
 }
 
-# Used to configure syslog monitoring via Data Collection Rule (DCR)
-# This should be the full Azure resource ID of an existing Log Analytics Workspace
-# Example format: /subscriptions/<sub-id>/resourceGroups/<rg>/providers/Microsoft.OperationalInsights/workspaces/<workspace-name>
-variable "workspace_resource_id" {
-  type        = string
-  description = "Full Azure resource ID of the Log Analytics Workspace"
-}
-

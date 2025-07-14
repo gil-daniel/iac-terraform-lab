@@ -33,7 +33,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
 
   destinations {
     log_analytics {
-      workspace_resource_id = var.workspace_resource_id  # Workspace ID passed from root module
+      workspace_resource_id = azurerm_log_analytics_workspace.law.id  # Uses the workspace created in this module as the destination for syslog logs
       name                  = "centralLogAnalyticsWorkspace"
     }
   }
