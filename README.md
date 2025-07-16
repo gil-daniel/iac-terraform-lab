@@ -15,7 +15,8 @@ Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to 
 - Creates a resource group in Azure  
 - Provisions a virtual network and subnet (`network` module)  
 - Creates a Network Security Group with rules for SSH (22) and HTTP (80) (`security` module)  
-- Deploys a Linux VM (Ubuntu 22.04 LTS) with public IP and NIC (`compute` module)  
+- Deploys two Linux VMs (Ubuntu 22.04 LTS): one for NGINX (`compute` module) and one for Grafana (`grafana` module)
+- Installs and configures Grafana via cloud-init with public access on port 3000
 - Configures SSH access using your public key  
 - Installs and starts NGINX using `cloud-init`  
 - Enables monitoring via Azure Monitor Agent and Terraform-native Data Collection Rule (`monitoring` module) 
@@ -35,13 +36,15 @@ iac-terraform-lab/
 ├── variables.tf                # Input variables
 ├── terraform.tfvars            # Sensitive values (ignored by Git)
 ├── modules/
-│   ├── compute/                # VM, NIC, Public IP
+│   ├── compute/                # VM, NIC, Public IP for NGINX
+│   ├── grafana/                # Dedicated VM with Grafana and NSG
+│   ├── monitoring/             # Log Analytics workspace, diagnostics, and DCR
 │   ├── network/                # VNet and Subnet
-│   ├── security/               # NSG and subnet association
-│   └── monitoring/             # Log Analytics workspace, diagnostics, and DCR
+│   └── security/               # NSG and optional subnet association
 ├── Makefile                    # CLI shortcuts for Terraform
 ├── .gitignore                  # Terraform-specific exclusions
 ├── README.md                   # Project documentation
+
 ```
 ---
 
@@ -177,6 +180,7 @@ This project is fully modularized for clarity and reusability. Each module handl
 | `security`  | Creates the Network Security Group (NSG) and associates it with the Subnet |
 | `compute`   | Provisions the Public IP, Network Interface (NIC), and Linux VM |
 | `monitoring`| Sets up Log Analytics Workspace, diagnostic settings and DCR for syslog monitoring |
+| `grafana`   | Provisions a dedicated VM with Grafana installed and exposed via port 3000 |
 
 ---
 
@@ -190,7 +194,7 @@ This lab already covers the essentials — but here’s what’s planned or in p
 * [x] Modularize the infrastructure (vnet, vm, nsg, etc.)  
 * [x] Integrate with CI/CD (GitHub Actions or Azure DevOps)  
 * [x] Add monitoring and alerting with Azure Monitor  
-* [ ] Add alert rules and dashboards (planned Grafana integration)
+* [x] Add alert rules and dashboards with Grafana integration
 
 ---
 
