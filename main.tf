@@ -53,3 +53,13 @@ module "monitoring" {
   resource_group_name     = var.resource_group_name
   vm_id                   = module.compute.vm_id              # VM ID used for diagnostics
 }
+
+# Provisions a dedicated VM for Grafana monitoring with public access on port 3000
+module "grafana" {
+  source              = "./modules/grafana"
+  resource_group_name = azurerm_resource_group.rg.name       # Resource group for Grafana VM
+  location            = var.location                         # Azure region
+  admin_username      = var.admin_username                   # SSH username for Grafana VM
+  ssh_public_key      = var.ssh_public_key_content           # SSH public key for Grafana VM
+  subnet_id           = module.network.subnet_id             # Subnet for Grafana NIC
+}
