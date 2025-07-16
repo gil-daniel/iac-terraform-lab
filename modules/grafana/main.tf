@@ -58,6 +58,21 @@ resource "azurerm_network_security_group" "grafana_nsg" {
   resource_group_name = var.resource_group_name
 }
 
+# Allow inbound SSH access on port 22
+resource "azurerm_network_security_rule" "grafana_ssh" {
+  name                        = "AllowSSH"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "22"
+  source_address_prefix       = "*"                          # Allow from any IP (can be restricted later)
+  destination_address_prefix  = "*"
+  resource_group_name         = var.resource_group_name
+  network_security_group_name = azurerm_network_security_group.grafana_nsg.name
+}
+
 # Allow inbound traffic on port 3000 (Grafana web UI)
 resource "azurerm_network_security_rule" "grafana_port" {
   name                        = "AllowGrafanaPort"
