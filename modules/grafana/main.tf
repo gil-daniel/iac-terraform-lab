@@ -26,7 +26,7 @@ resource "azurerm_linux_virtual_machine" "grafana_vm" {
   name                = "grafana-vm"
   location            = var.location
   resource_group_name = var.resource_group_name
-  size                = "Standard_B2s"
+  size                = "Standard_B1s"
   admin_username      = var.admin_username
   network_interface_ids = [azurerm_network_interface.grafana_nic.id]
 
@@ -43,7 +43,7 @@ resource "azurerm_linux_virtual_machine" "grafana_vm" {
   source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
-    sku       = "22_04-lts"
+    sku       = "22_04-lts-gen2"
     version   = "latest"
   }
 
