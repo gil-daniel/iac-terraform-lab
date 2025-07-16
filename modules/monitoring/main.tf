@@ -30,6 +30,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
   name                = "${var.prefix}-dcr-linux-syslog"
   location            = var.location
   resource_group_name = var.resource_group_name
+  kind                = "Linux"  # Specifies that this DCR is for Linux systems
 
   destinations {
     log_analytics {
