@@ -33,9 +33,10 @@ resource "azurerm_network_security_group" "nsg" {
   }
 }
 
-# Associates the NSG with the subnet
-# Ensures that the defined rules apply to all resources within the subnet
+# Optionally associates the NSG with the subnet if enabled via variable
 resource "azurerm_subnet_network_security_group_association" "nsg_assoc" {
+  count                     = var.associate_with_subnet ? 1 : 0
   subnet_id                 = var.subnet_id
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
+

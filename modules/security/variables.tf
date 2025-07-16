@@ -10,3 +10,10 @@ variable "resource_group_name" {}
 # ID of the subnet to associate with the NSG
 # Ensures that security rules apply to resources within the subnet
 variable "subnet_id" {}
+
+# Controls whether the NSG should be associated with the subnet
+variable "associate_with_subnet" {
+  description = "Whether to associate the NSG with the subnet"
+  type        = bool
+  default     = false
+}

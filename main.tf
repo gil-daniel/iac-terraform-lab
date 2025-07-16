@@ -23,12 +23,14 @@ module "network" {
 
 # Creates a Network Security Group and associates it with the subnet
 module "security" {
-  source              = "./modules/security"
-  nsg_name            = "nsg-iac-lab"                     # Name of the NSG
-  location            = var.location
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = module.network.subnet_id          # Links NSG to the subnet
+  source                  = "./modules/security"
+  nsg_name                = "nsg-iac-lab"                     # Name of the NSG
+  location                = var.location
+  resource_group_name     = azurerm_resource_group.rg.name
+  subnet_id               = module.network.subnet_id          # Subnet to optionally associate
+  associate_with_subnet   = false                             # Disable NSG-subnet association
 }
+
 
 # Provisions a Linux VM with public IP, NIC, and cloud-init configuration
 module "compute" {
