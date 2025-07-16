@@ -1,7 +1,15 @@
 #cloud-config
 package_update: true
 
-# Install Grafana and its dependencies
+write_files:
+  - path: /etc/grafana/grafana.ini
+    content: |
+      [server]
+      protocol = http
+      http_addr = 0.0.0.0
+      http_port = 3000
+      domain = ${public_ip}
+
 runcmd:
   - apt-get install -y apt-transport-https software-properties-common wget gnupg
   - wget -q -O - https://packages.grafana.com/gpg.key | apt-key add -
@@ -9,4 +17,4 @@ runcmd:
   - apt-get update
   - apt-get install -y grafana
   - systemctl enable grafana-server
-  - systemctl start grafana-server
+  - systemctl restart grafana-server

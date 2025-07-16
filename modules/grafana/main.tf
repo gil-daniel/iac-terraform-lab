@@ -23,6 +23,10 @@ resource "azurerm_network_interface" "grafana_nic" {
 
 # Provision a Linux VM and install Grafana using cloud-init
 resource "azurerm_linux_virtual_machine" "grafana_vm" {
+# Ensure NSG is attached before VM boots and cloud-init runs
+  depends_on = [
+  azurerm_network_interface_security_group_association.grafana_nic_nsg
+]
   name                = "grafana-vm"
   location            = var.location
   resource_group_name = var.resource_group_name
