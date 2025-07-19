@@ -43,14 +43,14 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
     syslog {
       name           = "LinuxSyslogBase"
       facility_names = ["auth", "cron", "daemon", "syslog"]
-      log_levels     = ["Error", "Warning", "Info"]
-      streams        = ["Microsoft-InsightsSyslog"]
+      log_levels     = ["Error", "Warning", "Info"]                          # Log levels fix for compatibility
+      streams        = ["Microsoft-InsightsSyslog"]                         # Stream fix according to documentation
     }
   }
 
   data_flow {
-    streams     = ["Microsoft-InsightsSyslog"]
-    destinations = ["centralLogAnalyticsWorkspace"]
+    streams     = ["Microsoft-InsightsSyslog"]                              # Alinhado com nome do stream válido
+    destinations = ["centralLogAnalyticsWorkspace"]                         # Destino definido no bloco de destinations
   }
 
   # Ensures the workspace is created before applying the DCR

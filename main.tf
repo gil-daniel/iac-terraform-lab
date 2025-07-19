@@ -1,3 +1,13 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=3.49.0"  # Version confirmed as compatible with the DCR and monitoring resources
+    }
+  }
+  required_version = ">= 1.4.0"
+}
+
 # Configures the Azure provider and sets the subscription context
 provider "azurerm" {
   features {}
