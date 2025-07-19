@@ -16,7 +16,7 @@ resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
   enabled_log {
-    category = "Syslog"
+    category = "LinuxSyslog"  # Collects syslog logs from the VM
   }
 
   enabled_metric {
