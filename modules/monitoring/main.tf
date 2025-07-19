@@ -42,14 +42,14 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
   data_sources {
     syslog {
       name           = "LinuxSyslogBase"
-      facility_names = ["auth", "cron", "syslog"]
-      log_levels     = ["Critical", "Alert", "Emergency"]
-      streams        = ["Microsoft-Syslog"]
+      facility_names = ["auth", "cron", "daemon", "syslog"]
+      log_levels     = ["Error", "Warning", "Info"]
+      streams        = ["Microsoft-InsightsSyslog"]
     }
   }
 
   data_flow {
-    streams     = ["Microsoft-Syslog"]
+    streams     = ["Microsoft-InsightsSyslog"]
     destinations = ["centralLogAnalyticsWorkspace"]
   }
 
