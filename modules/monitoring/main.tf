@@ -1,44 +1,47 @@
+# modules/monitoring/main.tf
+
 # Creates a Log Analytics Workspace for monitoring and diagnostics
 # Stores logs and metrics collected from the VM
 resource "azurerm_log_analytics_workspace" "law" {
-  name                = "${var.prefix}-law"           # Workspace name with prefix
+  name                = "${var.prefix}-law"
   location            = var.location
   resource_group_name = var.resource_group_name
-  sku                 = "PerGB2018"                   # Pay-as-you-go pricing model
-  retention_in_days   = 30                            # Retains logs for 30 days
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+
+  # This workspace serves as the central destination for metrics and logs via DCR.
 }
 
-# Enables diagnostic settings on the VM
-# Sends metrics and logs to the Log Analytics Workspace
+# Enables diagnostic settings on the VM for metrics only
+# Sends metrics to the Log Analytics Workspace
 resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
-  name                       = "${var.prefix}-vm-diag" # Diagnostic setting name
-  target_resource_id         = var.vm_id               # VM to be monitored
+  name                       = "${var.prefix}-vm-diag"
+  target_resource_id         = var.vm_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
-  enabled_log {
-    category = "LinuxSyslog"  # Collects syslog logs from the VM
-  }
-
+  # Collect all available metrics
   enabled_metric {
     category = "AllMetrics"
+    enabled  = true
   }
 
-  # Ensures the workspace is created before applying diagnostics
+  # Note: Syslog logs are handled via the Data Collection Rule; no 'log' block is defined here.
+
   depends_on = [azurerm_log_analytics_workspace.law]
 }
 
 # Creates a Data Collection Rule (DCR) for syslog monitoring
-# This rule defines how logs are collected and routed to the Log Analytics Workspace
+# Defines how syslog logs are collected and routed to the Log Analytics Workspace
 resource "azurerm_monitor_data_collection_rule" "dcr" {
   name                = "${var.prefix}-dcr-linux-syslog"
   location            = var.location
   resource_group_name = var.resource_group_name
-  kind                = "Linux"  # Specifies that this DCR is for Linux systems
+  kind                = "Linux"
 
   destinations {
     log_analytics {
-      workspace_resource_id = azurerm_log_analytics_workspace.law.id  # Uses the workspace created in this module as the destination for syslog logs
       name                  = "centralLogAnalyticsWorkspace"
+      workspace_resource_id = azurerm_log_analytics_workspace.law.id
     }
   }
 
@@ -46,34 +49,30 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
     syslog {
       name           = "LinuxSyslogBase"
       facility_names = ["auth", "cron", "daemon", "syslog"]
-      log_levels     = ["Error", "Warning", "Info"]                          # Log levels fix for compatibility
-      streams        = ["Microsoft-InsightsSyslog"]                         # Stream fix according to documentation
+      log_levels     = ["Error", "Warning", "Informational"]  # Use 'Informational' instead of 'Info'
+      streams        = ["Microsoft-Syslog"]                  # Valid stream name for syslog
 
-      # NEW: ensure 'streams' matches exactly the supported DCR stream name
-      # NEW: log_levels must be one of the accepted values by Azure DCR schema
+      # Ensure 'streams' matches the supported DCR stream name.
+      # log_levels must be one of the accepted values by the Azure DCR schema.
     }
   }
 
   data_flow {
-    streams     = ["Microsoft-InsightsSyslog"]                              # Aligned with valid stream name
-    destinations = ["centralLogAnalyticsWorkspace"]                         # Destination defined in the destinations block
+    streams      = ["Microsoft-Syslog"]                    # Matches data_sources.streams
+    destinations = ["centralLogAnalyticsWorkspace"]         # Matches destinations.name
 
-    # NEW: data_flow ties syslog stream to the Log Analytics destination
+    # Data flow ties the Syslog stream to the Log Analytics destination.
   }
 
-  # Ensures the workspace is created before applying the DCR
   depends_on = [azurerm_log_analytics_workspace.law]
 }
 
 # Associates the Data Collection Rule with the VM
-# This enables syslog collection from the VM to the Log Analytics Workspace
+# Enables syslog ingestion from the VM into the DCR
 resource "azurerm_monitor_data_collection_rule_association" "dcr_assoc" {
   name                    = "${var.prefix}-dcr-assoc"
   target_resource_id      = var.vm_id
   data_collection_rule_id = azurerm_monitor_data_collection_rule.dcr.id
 
-  # Ensures the DCR is created before association
   depends_on = [azurerm_monitor_data_collection_rule.dcr]
-
-  # NEW: this association links the Linux VM to the DCR for syslog ingestion
 }
