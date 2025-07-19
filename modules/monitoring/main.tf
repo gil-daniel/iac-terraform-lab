@@ -16,12 +16,34 @@ resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
   # Enables collection of all available metrics
-  enabled_metric {
+  metric {
     category = "AllMetrics"
+    enabled  = true
+
+    # NEW: retention_policy block controls local metric retention
+    retention_policy {
+      enabled = false
+      days    = 0
+    }
+  }
+
+  # Optionally, enable collection of Linux syslog via Diagnostic Setting
+  # Syslog is a valid log category for Linux VMs
+  log {
+    category = "Syslog"
+    enabled  = true
+
+    # NEW: retention_policy controls local log retention duration
+    retention_policy {
+      enabled = false
+      days    = 0
+    }
   }
 
   # Ensures the workspace is created before applying diagnostics
   depends_on = [azurerm_log_analytics_workspace.law]
+
+  # NEW: uses v3.x syntax (metric/log blocks) instead of deprecated enabled_log
 }
 
 # Creates a Data Collection Rule (DCR) for syslog monitoring
@@ -45,12 +67,17 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
       facility_names = ["auth", "cron", "daemon", "syslog"]
       log_levels     = ["Error", "Warning", "Info"]                          # Log levels fix for compatibility
       streams        = ["Microsoft-InsightsSyslog"]                         # Stream fix according to documentation
+
+      # NEW: ensure 'streams' matches exactly the supported DCR stream name
+      # NEW: log_levels must be one of the accepted values by Azure DCR schema
     }
   }
 
   data_flow {
-    streams     = ["Microsoft-InsightsSyslog"]                              # Alinhado com nome do stream válido
-    destinations = ["centralLogAnalyticsWorkspace"]                         # Destino definido no bloco de destinations
+    streams     = ["Microsoft-InsightsSyslog"]                              # Aligned with valid stream name
+    destinations = ["centralLogAnalyticsWorkspace"]                         # Destination defined in the destinations block
+
+    # NEW: data_flow ties syslog stream to the Log Analytics destination
   }
 
   # Ensures the workspace is created before applying the DCR
@@ -66,4 +93,6 @@ resource "azurerm_monitor_data_collection_rule_association" "dcr_assoc" {
 
   # Ensures the DCR is created before association
   depends_on = [azurerm_monitor_data_collection_rule.dcr]
+
+  # NEW: this association links the Linux VM to the DCR for syslog ingestion
 }
