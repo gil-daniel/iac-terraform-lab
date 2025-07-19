@@ -19,7 +19,7 @@ resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
     category = "Syslog"
   }
 
-  metric {
+  enabled_metric {
     category = "AllMetrics"
   }
 
