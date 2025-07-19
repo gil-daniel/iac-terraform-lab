@@ -15,35 +15,16 @@ resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
   target_resource_id         = var.vm_id               # VM to be monitored
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
-  # Enables collection of all available metrics
-  metric {
-    category = "AllMetrics"
-    enabled  = true
-
-    # NEW: retention_policy block controls local metric retention
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
+  enabled_log {
+    category = "Syslog"
   }
 
-  # Optionally, enable collection of Linux syslog via Diagnostic Setting
-  # Syslog is a valid log category for Linux VMs
-  log {
-    category = "Syslog"
-    enabled  = true
-
-    # NEW: retention_policy controls local log retention duration
-    retention_policy {
-      enabled = false
-      days    = 0
-    }
+  metric {
+    category = "AllMetrics"
   }
 
   # Ensures the workspace is created before applying diagnostics
   depends_on = [azurerm_log_analytics_workspace.law]
-
-  # NEW: uses v3.x syntax (metric/log blocks) instead of deprecated enabled_log
 }
 
 # Creates a Data Collection Rule (DCR) for syslog monitoring
