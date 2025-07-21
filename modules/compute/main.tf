@@ -4,8 +4,8 @@ resource "azurerm_public_ip" "public_ip" {
   name                = var.public_ip_name
   location            = var.location
   resource_group_name = var.resource_group_name
-  allocation_method   = "Static"     # IP remains fixed after creation
-  sku                 = "Basic"      # Basic tier is sufficient for lab/demo
+  allocation_method   = "Static" # IP remains fixed after creation
+  sku                 = "Basic"  # Basic tier is sufficient for lab/demo
 }
 
 # Creates a network interface and attaches the public IP
@@ -18,7 +18,7 @@ resource "azurerm_network_interface" "nic" {
   ip_configuration {
     name                          = "internal"
     subnet_id                     = var.subnet_id
-    private_ip_address_allocation = "Dynamic"              # IP assigned automatically
+    private_ip_address_allocation = "Dynamic" # IP assigned automatically
     public_ip_address_id          = azurerm_public_ip.public_ip.id
   }
 }
@@ -26,14 +26,14 @@ resource "azurerm_network_interface" "nic" {
 # Provisions a Linux VM with Ubuntu 22.04 LTS
 # Uses cloud-init for automated configuration and installs NGINX
 resource "azurerm_linux_virtual_machine" "vm" {
-  name                  = var.vm_name
-  resource_group_name   = var.resource_group_name
-  location              = var.location
-  size                  = var.vm_size
-  admin_username        = var.admin_username
+  name                = var.vm_name
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  size                = var.vm_size
+  admin_username      = var.admin_username
 
   # Encodes and injects the cloud-init script for VM setup
-  custom_data           = filebase64(var.cloud_init_path)
+  custom_data = filebase64(var.cloud_init_path)
 
   # Attaches the NIC to the VM
   network_interface_ids = [azurerm_network_interface.nic.id]
@@ -83,10 +83,10 @@ resource "azurerm_virtual_machine_extension" "monitor_agent" {
 # This allows the VM to pull the Data Collection Rule configuration
 resource "azurerm_role_assignment" "dcr_metrics_publisher" {
   principal_id         = azurerm_linux_virtual_machine.vm.identity[0].principal_id
-  scope                = var.dcr_id    # ID of the Data Collection Rule resource
+  scope                = var.dcr_id # ID of the Data Collection Rule resource
   role_definition_name = "Monitoring Metrics Publisher"
 
   depends_on = [
-    azurerm_virtual_machine_extension.monitor_agent  # ensures the identity exists before assignment
+    azurerm_virtual_machine_extension.monitor_agent # ensures the identity exists before assignment
   ]
 }
