@@ -37,7 +37,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
   location            = var.location
   resource_group_name = var.resource_group_name
   kind                = "Linux"
-  data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.dce.id # Links to the Data Collection Endpoint created earlier
+  data_collection_endpoint_id = azurerm_monitor_data_collection_endpoint.dce.id #
   
   # Destination for collected logs and metrics
   destinations {
