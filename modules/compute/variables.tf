@@ -29,3 +29,9 @@ variable "public_ip_name" {}
 
 # Name of the network interface attached to the VM
 variable "nic_name" {}
+
+# ID of the VM, used for monitoring and diagnostics
+variable "dcr_id" {
+  description = "ID of the Azure Monitor Data Collection Rule to grant VM access"
+  type        = string
+}

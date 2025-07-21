@@ -55,6 +55,7 @@ module "compute" {
   subnet_id               = module.network.subnet_id
   public_ip_name          = "public-ip-demo"              # Name of the public IP resource
   nic_name                = "nic-demo"                    # Name of the network interface
+  dcr_id                  = module.monitoring.dcr_id      # ID of the Data Collection Rule for monitoring
 }
 
 # Sets up monitoring resources: Log Analytics workspace, diagnostic settings, and syslog collection

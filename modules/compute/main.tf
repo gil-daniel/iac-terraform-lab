@@ -75,14 +75,13 @@ resource "azurerm_virtual_machine_extension" "monitor_agent" {
   depends_on = [azurerm_linux_virtual_machine.vm]
 }
 resource "azurerm_role_assignment" "dcr_metrics_publisher" {
-  scope                = azurerm_monitor_data_collection_rule.dcr.id
+  scope                = var.dcr_id  # Scope is the Data Collection Rule (DCR) ID
   role_definition_name = "Monitoring Metrics Publisher"  # Role that allows publishing metrics
   principal_id         = azurerm_linux_virtual_machine.vm.identity[0].principal_id
 
   # Assigns the VM's managed identity the role to publish metrics to the DCR
   depends_on = [
     azurerm_virtual_machine_extension.monitor_agent, #Ensures the agent is installed before role assignment
-    azurerm_monitor_data_collection_rule.dcr         # Ensures the DCR exists before assigning the role
     ] 
 
 }
