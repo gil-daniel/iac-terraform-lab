@@ -67,6 +67,10 @@ jobs:
       # 6.1 Show provider versions used in this run
       - name: Show provider versions
         run: terraform providers
+      
+      #6.2 Debug compute main.tf file
+      - name: Debug Dump modules/compute/main.tf
+        run: sed -n '1,200p' modules/compute/main.tf
           
       # 7. Validate Terraform configuration
       - name: Terraform validate
