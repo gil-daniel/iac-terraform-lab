@@ -67,6 +67,20 @@ module "monitoring" {
   vm_id               = module.compute.vm_id # VM ID used for diagnostics
 }
 
+# Assigns the Monitoring Metrics Publisher role to the VM's managed identity
+# This allows the VM to pull the Data Collection Rule configuration
+resource "azurerm_role_assignment" "dcr_metrics_publisher" {
+  scope                = module.monitoring.dcr_id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = module.compute.vm_principal_id
+
+  depends_on = [
+    module.monitoring,
+    module.compute
+  ]
+}
+
+
 # Provisions a dedicated VM for Grafana monitoring with public access on port 3000
 module "grafana" {
   source              = "./modules/grafana"
