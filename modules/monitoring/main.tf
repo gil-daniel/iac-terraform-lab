@@ -66,7 +66,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
       # List of performance counters to collect in the format:
       # \\ObjectName(InstanceName)\\CounterName
       counter_specifiers = [
-        "\\LogicalDisk(*)\\% Free Space",
+      # "\\LogicalDisk(*)\\% Free Space",
         "\\Processor(_Total)\\% Processor Time",
         "\\Memory\\Available MBytes"
       ]
