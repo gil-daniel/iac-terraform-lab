@@ -51,8 +51,8 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
     syslog {
       name           = "LinuxSyslogBase"
       facility_names = ["auth", "cron", "daemon", "syslog"]
-      log_levels     = ["Error", "Warning", "Informational"]  # Use 'Informational' instead of 'Info'
-      streams        = ["Microsoft-Syslog"]                   # Valid stream name for syslog
+      log_levels     = ["Error", "Warning", "Info"]       # Changed "Informational" → "Info"
+      streams        = ["Microsoft-Syslog"]               # Valid stream name for syslog
 
       # Ensure 'streams' matches the supported DCR stream name.
       # log_levels must be one of the accepted values by the Azure DCR schema.
@@ -71,12 +71,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
         "\\Memory\\Available MBytes"
       ]
 
-      # Optional: add more counters (CPU, Memory) here:
-      # counter_specifiers = [
-      #   "\\LogicalDisk(*)\\% Free Space",
-      #   "\\Processor(_Total)\\% Processor Time",
-      #   "\\Memory\\Available MBytes"
-      # ]
+      # Optional: add more counters here if needed
     }
   }
 
