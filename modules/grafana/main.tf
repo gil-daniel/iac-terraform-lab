@@ -97,3 +97,16 @@ resource "azurerm_network_interface_security_group_association" "grafana_nic_nsg
   network_interface_id      = azurerm_network_interface.grafana_nic.id
   network_security_group_id = azurerm_network_security_group.grafana_nsg.id
 }
+
+# Installs the Azure Monitor Agent on the Grafana VM
+# Enables collection of CPU and memory performance counters via DCR
+resource "azurerm_virtual_machine_extension" "monitor_agent_grafana" {
+  name                       = "AzureMonitorLinuxAgent"
+  virtual_machine_id         = azurerm_linux_virtual_machine.grafana_vm.id
+  publisher                  = "Microsoft.Azure.Monitor"
+  type                       = "AzureMonitorLinuxAgent"
+  type_handler_version       = "1.0"
+  auto_upgrade_minor_version = true
+
+  depends_on = [azurerm_linux_virtual_machine.grafana_vm]
+}
