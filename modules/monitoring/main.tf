@@ -9,28 +9,27 @@ resource "azurerm_log_analytics_workspace" "law" {
   sku                 = "PerGB2018"
   retention_in_days   = 30
 
-  # This workspace is the central destination for all metrics and logs via DCR.
+  # This workspace serves as the central destination for metrics and logs via DCR.
 }
 
 # Enables diagnostic settings on the VM for metrics only
-# Logs (like syslog) on Linux must be collected via DCR
+# Sends metrics to the Log Analytics Workspace
 resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
   name                       = "${var.prefix}-vm-diag"
   target_resource_id         = var.vm_id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
-  metric {
-    category = "AllMetrics"     # Collect all available VM metrics
-    retention_policy {          # Optional: controls local retention
-      enabled = false
-      days    = 0
-    }
+  # Collect all available metrics
+  enabled_metric {
+    category = "AllMetrics"
   }
+
+  # Note: Syslog logs are handled via the Data Collection Rule; no 'log' block is defined here.
 
   depends_on = [azurerm_log_analytics_workspace.law]
 }
 
-# Creates a Data Collection Rule (DCR) for syslog monitoring  
+# Creates a Data Collection Rule (DCR) for syslog monitoring
 # Defines how syslog logs are collected and routed to the Log Analytics Workspace
 resource "azurerm_monitor_data_collection_rule" "dcr" {
   name                = "${var.prefix}-dcr-linux-syslog"
@@ -49,21 +48,39 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
     syslog {
       name           = "LinuxSyslogBase"
       facility_names = ["auth", "cron", "daemon", "syslog"]
-      log_levels     = ["Error", "Warning", "Info"]   # Valid levels for Linux syslog
-      streams        = ["Microsoft-Syslog"]           # Correct stream name for DCR
+      log_levels     = ["Error", "Warning", "Informational"]  # Use 'Informational' instead of 'Info'
+      streams        = ["Microsoft-Syslog"]                  # Valid stream name for syslog
+
+      # Ensure 'streams' matches the supported DCR stream name.
+      # log_levels must be one of the accepted values by the Azure DCR schema.
+    }
+    performance_counter {
+      name                          = "LinuxPerformanceCounters"
+      streams                       = ["Microsoft-Perf"]
+      sampling_frequency_in_seconds  = 60
+
+    # List of performance counter specifiers to be collected by the monitoring solution.
+    # Each entry should specify the exact performance counter path as required by the monitoring configuration.
+      counter_specifiers = [
+        {
+          counter_name  = "% Free Space"
+          object_name   = "LogicalDisk"
+          instance_name = "*"
+        }
+      ]
     }
   }
-
   data_flow {
-    streams      = ["Microsoft-Syslog"]               # Must match data_sources.streams
-    destinations = ["centralLogAnalyticsWorkspace"]   # Must match destinations.name
+    streams      = ["Microsoft-Syslog"]                    # Matches data_sources.streams
+    destinations = ["centralLogAnalyticsWorkspace"]         # Matches destinations.name
+
+    # Data flow ties the Syslog stream to the Log Analytics destination.
   }
 
   depends_on = [azurerm_log_analytics_workspace.law]
 }
-
 # Associates the Data Collection Rule with the VM
-# Enables syslog ingestion from the VM into the Log Analytics Workspace
+# Enables syslog ingestion from the VM into the DCR
 resource "azurerm_monitor_data_collection_rule_association" "dcr_assoc" {
   name                    = "${var.prefix}-dcr-assoc"
   target_resource_id      = var.vm_id
