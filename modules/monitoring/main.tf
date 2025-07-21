@@ -30,7 +30,8 @@ resource "azurerm_monitor_diagnostic_setting" "vm_diag" {
 }
 
 # Creates a Data Collection Rule (DCR) for syslog monitoring
-# Defines how syslog logs are collected and routed to the Log Analytics Workspace
+# Defines how syslog logs and disk performance counters are collected
+# and routed to the Log Analytics Workspace
 resource "azurerm_monitor_data_collection_rule" "dcr" {
   name                = "${var.prefix}-dcr-linux-syslog"
   location            = var.location
@@ -45,7 +46,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
     }
   }
 
-  # Define Syslog data source
+  # Define data sources: syslog and performance counters
   data_sources {
     syslog {
       name           = "LinuxSyslogBase"
@@ -56,31 +57,33 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
       # Ensure 'streams' matches the supported DCR stream name.
       # log_levels must be one of the accepted values by the Azure DCR schema.
     }
-  }
 
-  # Collect disk usage (% Free Space)
-  performance_counters {
-    streams                        = ["Microsoft-Perf"]
-    sampling_frequency_in_seconds = 60
+    performance_counter {
+      name                          = "LinuxPerformanceCounters"
+      streams                       = ["Microsoft-Perf"]
+      sampling_frequency_in_seconds = 60
 
-    counter_specifications {
-      counter_name  = "% Free Space"
-      object_name   = "LogicalDisk"
-      instance_name = "*"
+      # List of performance counters to collect in the format:
+      # \\ObjectName(InstanceName)\\CounterName
+      counter_specifiers = [
+        "\\LogicalDisk(*)\\% Free Space",
+        "\\Processor(_Total)\\% Processor Time",
+        "\\Memory\\Available MBytes"
+      ]
+
+      # Optional: add more counters (CPU, Memory) here:
+      # counter_specifiers = [
+      #   "\\LogicalDisk(*)\\% Free Space",
+      #   "\\Processor(_Total)\\% Processor Time",
+      #   "\\Memory\\Available MBytes"
+      # ]
     }
-
-    # Optional: add more counters here (e.g., CPU, Memory)
-    # counter_specifications {
-    #   counter_name  = "% Processor Time"
-    #   object_name   = "Processor"
-    #   instance_name = "_Total"
-    # }
   }
 
-  # Tie both data streams to Log Analytics destination
+  # Tie both data streams to the Log Analytics destination
   data_flow {
-    streams      = ["Microsoft-Syslog", "Microsoft-Perf"]   # Include performance stream
-    destinations = ["centralLogAnalyticsWorkspace"]        # Matches destinations.name
+    streams      = ["Microsoft-Syslog", "Microsoft-Perf"]  # Include performance stream
+    destinations = ["centralLogAnalyticsWorkspace"]       # Matches destinations.name
 
     # Data flow ties the Syslog and Perf streams to the Log Analytics destination.
   }
@@ -89,7 +92,7 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
 }
 
 # Associates the Data Collection Rule with the VM
-# Enables syslog ingestion from the VM into the DCR
+# Enables syslog and performance counter ingestion from the VM into the DCR
 resource "azurerm_monitor_data_collection_rule_association" "dcr_assoc" {
   name                    = "${var.prefix}-dcr-assoc"
   target_resource_id      = var.vm_id
