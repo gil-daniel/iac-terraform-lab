@@ -57,13 +57,15 @@ resource "azurerm_linux_virtual_machine" "vm" {
     sku       = "22_04-lts-gen2"
     version   = "latest"
   }
+
+  # Enables system-assigned managed identity for the VM
   identity {
-    type = "SystemAssigned"  # Enables system-assigned managed identity for the VM
+    type = "SystemAssigned"
   }
 }
 
 # Installs the Azure Monitor Agent on the Linux VM
-# Enables collection of performance counters via DCR
+# Enables collection of performance counters via the configured DCR
 resource "azurerm_virtual_machine_extension" "monitor_agent" {
   name                       = "AzureMonitorLinuxAgent"
   virtual_machine_id         = azurerm_linux_virtual_machine.vm.id
@@ -72,16 +74,19 @@ resource "azurerm_virtual_machine_extension" "monitor_agent" {
   type_handler_version       = "1.0"
   auto_upgrade_minor_version = true
 
-  depends_on = [azurerm_linux_virtual_machine.vm]
+  depends_on = [
+    azurerm_linux_virtual_machine.vm
+  ]
 }
+
+# Assigns the Monitoring Metrics Publisher role to the VM's managed identity
+# This allows the VM to pull the Data Collection Rule configuration
 resource "azurerm_role_assignment" "dcr_metrics_publisher" {
   principal_id         = azurerm_linux_virtual_machine.vm.identity[0].principal_id
-  scope                = var.dcr_id  # Scope is the Data Collection Rule (DCR) ID
-  role_definition_name = "Monitoring Metrics Publisher"  # Role that allows publishing metrics
-  # This role allows the VM's managed identity to send metrics to the DCR
-  # Assigns the VM's managed identity the role to publish metrics to the DCR
-  depends_on = [
-    azurerm_virtual_machine_extension.monitor_agent, #Ensures the agent is installed before role assignment
-    ] 
+  scope                = var.dcr_id    # ID of the Data Collection Rule resource
+  role_definition_name = "Monitoring Metrics Publisher"
 
+  depends_on = [
+    azurerm_virtual_machine_extension.monitor_agent  # ensures the identity exists before assignment
+  ]
 }
