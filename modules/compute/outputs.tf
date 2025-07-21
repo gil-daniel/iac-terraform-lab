@@ -26,6 +26,6 @@ output "vm_name" {
 
 # Outputs the resource group name where the VM is located
 output "vm_principal_id" {
-  description = "The principal ID of the VM's system-assigned identity"
-  value       = azurerm_linux_virtual_machine.vm.identity[0].principal_id
+  value = azurerm_linux_virtual_machine.vm.identity[0].principal_id
 }
+
