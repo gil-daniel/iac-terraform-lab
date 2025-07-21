@@ -57,7 +57,11 @@ resource "azurerm_linux_virtual_machine" "vm" {
     sku       = "22_04-lts-gen2"
     version   = "latest"
   }
+  identity {
+    type = "SystemAssigned"  # Enables system-assigned managed identity for the VM
+  }
 }
+
 # Installs the Azure Monitor Agent on the Linux VM
 # Enables collection of performance counters via DCR
 resource "azurerm_virtual_machine_extension" "monitor_agent" {
@@ -69,4 +73,16 @@ resource "azurerm_virtual_machine_extension" "monitor_agent" {
   auto_upgrade_minor_version = true
 
   depends_on = [azurerm_linux_virtual_machine.vm]
+}
+resource "azurerm_role_assignment" "dcr_metrics_publisher" {
+  scope                = azurerm_monitor_data_collection_rule.dcr.id
+  role_definition_name = "Monitoring Metrics Publisher"  # Role that allows publishing metrics
+  principal_id         = azurerm_linux_virtual_machine.vm.identity[0].principal_id
+
+  # Assigns the VM's managed identity the role to publish metrics to the DCR
+  depends_on = [
+    azurerm_virtual_machine_extension.monitor_agent, #Ensures the agent is installed before role assignment
+    azurerm_monitor_data_collection_rule.dcr         # Ensures the DCR exists before assigning the role
+    ] 
+
 }
