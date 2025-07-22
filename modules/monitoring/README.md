@@ -65,3 +65,9 @@ module "monitoring" {
 - The Data Collection Endpoint (DCE) is required for AMA to ingest data via DCR.
 - This module handles everything: workspace, DCE, DCR, association, and diagnostics.
 - You can query logs and metrics in Azure Monitor or visualize them in Grafana.
+
+---
+
+## 🧑‍💻 Author
+
+Daniel Gil
