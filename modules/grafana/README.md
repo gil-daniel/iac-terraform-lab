@@ -1,12 +1,12 @@
 # 📊 Grafana Module
 
-This module provisions a Linux VM running Grafana using `cloud-init`, and exposes it publicly on port `3000`. It also installs the Azure Monitor Agent to collect performance metrics via DCR.
+This module provisions a Linux VM running Grafana using `cloud-init`, and exposes it publicly on port `3000`. It also installs the Azure Monitor Agent (AMA) to collect performance metrics via DCR, and provides reusable dashboards via JSON templates.
 
 ---
 
 ## 📦 Resources Created
 
-- `azurerm_public_ip` – Static public IP address for external access  
+- `azurerm_public_ip` – Static public IP for external access  
 - `azurerm_network_interface` – NIC linked to subnet and public IP  
 - `azurerm_network_security_group` – NSG with rules for SSH and Grafana  
 - `azurerm_network_security_rule` – Allows inbound traffic on ports `22` and `3000`  
@@ -18,21 +18,52 @@ This module provisions a Linux VM running Grafana using `cloud-init`, and expose
 
 ## 📥 Input Variables
 
-| Name                  | Type    | Description                                      | Required |
-|-----------------------|---------|--------------------------------------------------|----------|
-| `resource_group_name` | string  | Name of the resource group                       | ✅ Yes   |
-| `location`            | string  | Azure region for deployment                      | ✅ Yes   |
-| `admin_username`      | string  | SSH username to access the VM                    | ✅ Yes   |
-| `ssh_public_key`      | string  | Public key content for secure SSH access         | ✅ Yes   |
-| `subnet_id`           | string  | Subnet ID used to connect the NIC                | ✅ Yes   |
+| Name                  | Type    | Description                             | Required |
+|-----------------------|---------|-----------------------------------------|----------|
+| `resource_group_name` | string  | Name of the resource group              | ✅ Yes   |
+| `location`            | string  | Azure region for deployment             | ✅ Yes   |
+| `admin_username`      | string  | SSH username to access the VM           | ✅ Yes   |
+| `ssh_public_key`      | string  | Public key for secure SSH access        | ✅ Yes   |
+| `subnet_id`           | string  | Subnet ID for VM network attachment     | ✅ Yes   |
 
 ---
 
 ## 📤 Outputs
 
-| Name               | Description                                      |
-|--------------------|--------------------------------------------------|
-| `grafana_public_ip`| Public IP address of the Grafana VM              |
+| Name                | Description                          |
+|---------------------|--------------------------------------|
+| `grafana_public_ip` | Public IP of the Grafana VM          |
+
+---
+
+## 📈 Included Dashboards
+
+The module contains ready-to-use Grafana dashboards exported as JSON templates:
+
+### 1. `vm-demo-dashboard-template.json`
+- Monitors CPU, memory, disk, and network usage
+- Threshold markers on CPU usage
+- Suitable for Azure VMs using the Azure Monitor datasource
+
+### 2. `lab-law-logs-dashboard-template.json`
+- Uses Azure Log Analytics to query logs
+- Displays heartbeat, syslog facility distribution, and recent events
+
+📁 Templates located at:  
+`grafana/dashboards/*.template.json`
+
+> ⚠️ Production dashboards with real identifiers are excluded via `.gitignore` to ensure security.
+
+---
+
+## 📷 Screenshots
+
+You may include screenshots such as:
+
+- ![VM Demo Dashboard](./screenshots/vm-demo-dashboard-template.png)
+- ![Log Events Dashboard](./screenshots/lab-law-logs-dashboard-template.png)
+
+To preview dashboard layouts and structure. Place them under `grafana/screenshots/` or link externally.
 
 ---
 
@@ -51,12 +82,13 @@ module "grafana" {
 ---
 
 ## ⚙️ Notes
-- The VM runs Ubuntu 22.04 LTS
-- Grafana is installed via cloud-init using the official APT repository
-- Custom configuration is injected into `/etc/grafana/grafana.ini` to bind it to port `3000` and `0.0.0.0`
-- Port `3000` is exposed via NSG for external access to the Grafana dashboard
-- Azure Monitor Agent is installed to enable VM performance collection (via DCR in the `monitoring` module)
-- SSH access is enabled using your provided public key
+
+- VM runs Ubuntu 22.04 LTS
+- Grafana installed via APT using official repository via cloud-init
+- AMA agent enables performance data collection for Azure Monitor + Log Analytics
+- Port 3000 open via NSG for external dashboard access
+- SSH access via provided public key
+- Dashboards versioned safely as templates; .gitignore excludes sensitive exports
 
 ---
 
