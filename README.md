@@ -1,11 +1,11 @@
-# 🚀 Terraform Azure Lab: Provisioning a Linux VM with Monitoring & CI/CD
+# 🚀 Terraform Azure Lab: Provisioning a Linux VM with Monitoring, Grafana Dashboards & CI/CD
 ![Terraform CI](https://github.com/gil-daniel/iac-terraform-lab/actions/workflows/terraform.yml/badge.svg)
 
-Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to provision a complete cloud infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). This lab sets up a Linux virtual machine with NGINX, full networking, monitoring via Data Collection Rules (DCR), and CI/CD integration.
+Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to provision a complete cloud infrastructure on Microsoft Azure using [Terraform](https://www.terraform.io/). This lab sets up two Linux virtual machines: one running NGINX, and another with Grafana for observability — including built-in dashboards exported as JSON templates.
 
 > ✅ **Modularized infrastructure** with remote state storage in Azure Blob Storage  
 > 🌐 **Public-facing VM** serving a web page via NGINX  
-> 📊 **Built-in monitoring** using Azure Monitor Agent and Data Collection Rules (DCR)  
+> 📊 **Built-in monitoring and dashboards** using Azure Monitor Agent, Log Analytics, and Grafana  
 > ⚙️ **CI/CD automation** via GitHub Actions
 
 ---
@@ -14,14 +14,14 @@ Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to 
 
 - Creates a resource group in Azure  
 - Provisions a virtual network and subnet (`network` module)  
-- Creates a Network Security Group with rules for SSH (22) and HTTP (80) (`security` module)  
+- Creates a Network Security Group with rules for SSH (22), HTTP (80), and Grafana (3000) (`security` module)  
 - Deploys two Linux VMs (Ubuntu 22.04 LTS): one for NGINX (`compute` module) and one for Grafana (`grafana` module)  
 - Installs and configures Grafana via cloud-init, accessible on port 3000  
-- Configures SSH access using your public key  
-- Installs and starts NGINX using `cloud-init`  
+- Installs NGINX and binds to public IP  
 - Enables monitoring via Azure Monitor Agent and a Terraform-managed Data Collection Rule (`monitoring` module)  
 - Stores Terraform state remotely in Azure Blob Storage  
-- Displays the VM’s private and public IP addresses
+- Displays both VM’s private and public IP addresses
+
 
 ---
 
@@ -47,6 +47,17 @@ iac-terraform-lab/
 
 ```
 ---
+
+## 📈 Grafana Dashboards (v1.2.0)
+Starting from version `v1.2.0`, the project includes two dashboard templates for real-time monitoring and log analytics:
+| Dashboard Template       | Description                              |
+|--------------------------|------------------------------------------|
+| `vm-demo-dashboard-template.json`| VM performance metrics (CPU, memory, disk, network) | 
+| `lab-law-logs-dashboard-template.json` | Log Analytic via KQL with heartbeat and syslog insights |
+
+ Available inside `modules/grafana` 📷 Screenshots in `modules/grafana/screenshots`
+
+ >⚠️ Production dashboards with real identifiers are excluded via .gitignore
 
 ## 🧰 Requirements
 
@@ -194,15 +205,13 @@ This project is fully modularized for clarity and reusability. Each module handl
 
 ## 📌 Next Steps
 
-This lab already covers the essentials — but here’s what’s planned or in progress:
+📌 Next Steps
 
-* [x] Add a public IP and NSG to allow SSH/HTTP access  
-* [x] Install NGINX using cloud-init  
-* [x] Configure remote backend with Azure Storage  
-* [x] Modularize the infrastructure (vnet, vm, nsg, etc.)  
-* [x] Integrate with CI/CD (GitHub Actions or Azure DevOps)  
-* [x] Add monitoring and alerting with Azure Monitor  
-* [x] Add alert rules and dashboards with Grafana integration
+Project goals already covered ✅ But if you want to explore further:
+- Automated dashboard provisioning
+- Alerts via Grafana
+- Integrate container monitoring
+- Expand with Ansible or Kubernetes (coming soon!)
 
 ---
 
