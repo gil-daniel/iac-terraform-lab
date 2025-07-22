@@ -1,0 +1,55 @@
+{
+  "title": "Azure Log Analytics - VM Events",
+  "panels": [
+    {
+      "title": "Syslog Event count",
+      "type": "table",
+      "targets": [
+        {
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Syslog\n| summarize Count = count() by Facility",
+            "resources": [
+              "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.OperationalInsights/workspaces/<WORKSPACE_NAME>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Heartbeat",
+      "type": "logs",
+      "targets": [
+        {
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Heartbeat\n| summarize Beats = count() by Computer, bin(TimeGenerated, 5m)",
+            "resources": [
+              "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.OperationalInsights/workspaces/<WORKSPACE_NAME>"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Recent Events",
+      "type": "logs",
+      "targets": [
+        {
+          "queryType": "Azure Log Analytics",
+          "azureLogAnalytics": {
+            "query": "Syslog\n| sort by TimeGenerated desc\n| take 10",
+            "resources": [
+              "/subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP>/providers/Microsoft.OperationalInsights/workspaces/<WORKSPACE_NAME>"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "uid": "<UID_PLACEHOLDER>"
+}

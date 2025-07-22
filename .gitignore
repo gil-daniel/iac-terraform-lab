@@ -10,3 +10,5 @@ dcr.json
 dcr-expanded.json
 backend.tf
 git-filter-repo/
+modules/grafana/dashboards/lab-law-logs-dashboard.json
+modules/grafana/dashboards/vm-demo-dashboard.json

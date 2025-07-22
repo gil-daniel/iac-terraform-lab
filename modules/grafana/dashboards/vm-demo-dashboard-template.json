@@ -1,0 +1,130 @@
+{
+  "title": "vm-demo",
+  "uid": "<DASHBOARD_UID>",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "title": "Used CPU percentage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "queryType": "Azure Monitor",
+          "azureMonitor": {
+            "metricName": "Percentage CPU",
+            "metricNamespace": "Microsoft.Compute/virtualMachines",
+            "aggregation": "Average",
+            "resources": [
+              {
+                "subscription": "<SUBSCRIPTION_ID>",
+                "resourceGroup": "<RESOURCE_GROUP>",
+                "resourceName": "<VM_NAME>",
+                "region": "<REGION>"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Available Memory",
+      "type": "stat",
+      "targets": [
+        {
+          "queryType": "Azure Monitor",
+          "azureMonitor": {
+            "metricName": "Available Memory Bytes",
+            "metricNamespace": "Microsoft.Compute/virtualMachines",
+            "aggregation": "Average",
+            "resources": [
+              {
+                "subscription": "<SUBSCRIPTION_ID>",
+                "resourceGroup": "<RESOURCE_GROUP>",
+                "resourceName": "<VM_NAME>",
+                "region": "<REGION>"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Disk I/O Activity",
+      "type": "gauge",
+      "targets": [
+        {
+          "queryType": "Azure Monitor",
+          "azureMonitor": {
+            "metricName": "Disk Read Bytes",
+            "metricNamespace": "Microsoft.Compute/virtualMachines",
+            "aggregation": "Total",
+            "resources": [
+              {
+                "subscription": "<SUBSCRIPTION_ID>",
+                "resourceGroup": "<RESOURCE_GROUP>",
+                "resourceName": "<VM_NAME>",
+                "region": "<REGION>"
+              }
+            ]
+          }
+        },
+        {
+          "queryType": "Azure Monitor",
+          "azureMonitor": {
+            "metricName": "Disk Write Bytes",
+            "metricNamespace": "Microsoft.Compute/virtualMachines",
+            "aggregation": "Average",
+            "resources": [
+              {
+                "subscription": "<SUBSCRIPTION_ID>",
+                "resourceGroup": "<RESOURCE_GROUP>",
+                "resourceName": "<VM_NAME>",
+                "region": "<REGION>"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Network I/O",
+      "type": "stat",
+      "targets": [
+        {
+          "queryType": "Azure Monitor",
+          "azureMonitor": {
+            "metricName": "Network In Total",
+            "metricNamespace": "Microsoft.Compute/virtualMachines",
+            "aggregation": "Maximum",
+            "resources": [
+              {
+                "subscription": "<SUBSCRIPTION_ID>",
+                "resourceGroup": "<RESOURCE_GROUP>",
+                "resourceName": "<VM_NAME>",
+                "region": "<REGION>"
+              }
+            ]
+          }
+        },
+        {
+          "queryType": "Azure Monitor",
+          "azureMonitor": {
+            "metricName": "Network Out Total",
+            "metricNamespace": "Microsoft.Compute/virtualMachines",
+            "aggregation": "Total",
+            "resources": [
+              {
+                "subscription": "<SUBSCRIPTION_ID>",
+                "resourceGroup": "<RESOURCE_GROUP>",
+                "resourceName": "<VM_NAME>",
+                "region": "<REGION>"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
