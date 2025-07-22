@@ -65,12 +65,20 @@ resource "azurerm_monitor_data_collection_rule" "dcr" {
       sampling_frequency_in_seconds = 60
 
       # List of performance counters to collect in the format:
-      # \\ObjectName(InstanceName)\\CounterName
+      # "ObjectName(InstanceName)\\CounterName"
+      # The asterisk (*) is used to collect all instances of the object.
+      # Ensure these counters are valid for Linux VMs.
+      # Note: The counters listed here are examples; adjust based on your VM's capabilities.
       counter_specifiers = [
-      # "\\LogicalDisk(*)\\% Free Space",
-        "\\Processor(_Total)\\% Processor Time",
-        "\\Memory\\Available MBytes"
+        "Processor(*)\\% Processor Time",
+        "Memory(*)\\Available MBytes",
+        "Memory(*)\\% Used Memory",
+        "LogicalDisk(*)\\% Free Space",
+        "LogicalDisk(*)\\Disk Read Bytes/sec",
+        "Network(*)\\Total Bytes Received",
+        "System(*)\\Uptime"
       ]
+
 
       # Optional: add more counters here if needed
     }
