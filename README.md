@@ -15,13 +15,13 @@ Welcome to the **Terraform Azure Lab** — a hands-on project that shows how to 
 - Creates a resource group in Azure  
 - Provisions a virtual network and subnet (`network` module)  
 - Creates a Network Security Group with rules for SSH (22) and HTTP (80) (`security` module)  
-- Deploys two Linux VMs (Ubuntu 22.04 LTS): one for NGINX (`compute` module) and one for Grafana (`grafana` module)
-- Installs and configures Grafana via cloud-init with public access on port 3000
+- Deploys two Linux VMs (Ubuntu 22.04 LTS): one for NGINX (`compute` module) and one for Grafana (`grafana` module)  
+- Installs and configures Grafana via cloud-init, accessible on port 3000  
 - Configures SSH access using your public key  
 - Installs and starts NGINX using `cloud-init`  
-- Enables monitoring via Azure Monitor Agent and Terraform-native Data Collection Rule (`monitoring` module) 
+- Enables monitoring via Azure Monitor Agent and a Terraform-managed Data Collection Rule (`monitoring` module)  
 - Stores Terraform state remotely in Azure Blob Storage  
-- Outputs the VM's private and public IP addresses  
+- Displays the VM’s private and public IP addresses
 
 ---
 
@@ -96,15 +96,22 @@ Monitoring is configured automatically through:
 
 - A Terraform-managed Data Collection Rule (DCR) that defines syslog collection
 - An association between the VM and the DCR
-- A ****Log Analytics Workspace** created within the `monitoring` module
+- A **Log Analytics Workspace** created within the `monitoring` module
 
 📥 Logs are sent to the workspace and can be queried via Azure Monitor or Kusto.
 
 ---
+## 🔄 How Monitoring Works
 
+- Azure Monitor Agent (AMA) is installed on the VM
+- AMA downloads the Data Collection Rule (DCR) via the Data Collection Endpoint (DCE)
+- The DCR defines which syslog facilities and performance counters to collect
+- AMA sends logs and metrics to the Log Analytics Workspace
+- You can query the data using KQL or visualize it in Grafana
+---
 ## ⚙️ CI/CD with GitHub Actions
 
-This project includes a GitHub Actions workflow that automates Terraform operations — making infrastructure deployment smoother and safer.
+This project includes a GitHub Actions workflow that automates Terraform operations, making infrastructure deployment smoother and safer.
 
 ### 🔄 CI/CD Workflow Overview
 
@@ -165,6 +172,7 @@ After a successful `terraform apply`, you'll see the following output values —
 
 | Output Name     | Description                              |
 |-----------------|------------------------------------------|
+| `grafana_public_ip`| Public address of Grafana, accessible via port 3000 |
 | `vm_private_ip` | Internal IP address of the VM            |
 | `vm_public_ip`  | Public IP address for SSH and HTTP access |
 
