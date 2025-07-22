@@ -1,33 +1,53 @@
-# Monitoring Module
+# 📊 Monitoring Module
 
-This module provisions the necessary resources to enable monitoring for a Linux virtual machine in Azure using Azure Monitor Agent (AMA) and Log Analytics.
+This module provisions the full monitoring pipeline for a Linux virtual machine in Azure using Azure Monitor Agent (AMA), Data Collection Rules (DCR), and Log Analytics.
 
-## Resources Created
+---
 
-- `azurerm_log_analytics_workspace`: Log Analytics workspace for metrics and log ingestion
-- `azurerm_monitor_diagnostic_setting`: Diagnostic setting that links the VM to the workspace for metric collection
+## 🔧 Resources Created
 
-## Input Variables
+- `azurerm_log_analytics_workspace`: Central workspace for metrics and logs
+- `azurerm_monitor_data_collection_endpoint`: Ingestion endpoint used by AMA
+- `azurerm_monitor_data_collection_rule`: Defines syslog and performance counter collection
+- `azurerm_monitor_data_collection_rule_association`: Links the VM to the DCR
+- `azurerm_monitor_diagnostic_setting`: Enables metric collection via Azure Monitor
 
-| Name                 | Description                                 | Type   | Required |
-|----------------------|---------------------------------------------|--------|----------|
-| `prefix`             | Prefix used for naming resources            | string | yes      |
-| `location`           | Azure region where resources are deployed   | string | yes      |
-| `resource_group_name`| Name of the resource group                  | string | yes      |
-| `vm_id`              | ID of the virtual machine to monitor        | string | yes      |
+---
 
-## Outputs
+## 🧰 Input Variables
 
-| Name                        | Description                                  |
-|-----------------------------|----------------------------------------------|
-| `log_analytics_workspace_id`| Resource ID of the Log Analytics workspace   |
+| Name                  | Description                                 | Type    | Required |
+|-----------------------|---------------------------------------------|---------|----------|
+| `prefix`              | Prefix used for naming resources            | string  | yes      |
+| `location`            | Azure region where resources are deployed   | string  | yes      |
+| `resource_group_name` | Name of the resource group                  | string  | yes      |
+| `vm_id`               | ID of the virtual machine to monitor        | string  | yes      |
 
-## Notes
+---
 
-- This module **does not create the Data Collection Rule (DCR)** or associate it with the VM. That is handled in the root `main.tf` using a `null_resource` and `local-exec`.
-- The workspace created here can be used for ingesting logs via AMA, including Syslog and performance metrics.
+## 🌐 Outputs
 
-## Example Usage
+| Name                        | Description                                      |
+|-----------------------------|--------------------------------------------------|
+| `log_analytics_workspace_id`| Resource ID of the Log Analytics workspace       |
+| `dcr_id`                    | Resource ID of the Data Collection Rule (DCR)    |
+
+---
+## 🔄 Monitoring Details
+
+- **Syslog facilities collected**: `auth`, `cron`, `daemon`, `syslog`
+- **Log levels**: `Error`, `Warning`, `Info`
+- **Performance counters**:
+  - CPU: `% Processor Time`
+  - Memory: `Available MBytes`, `% Used Memory`
+  - Disk: `% Free Space`, `Disk Read Bytes/sec`
+  - Network: `Total Bytes Received`
+  - System: `Uptime`
+- **Streams used**: `Microsoft-Syslog`, `Microsoft-Perf`
+
+---
+
+## 🚀 Example Usage
 
 ```hcl
 module "monitoring" {
@@ -37,3 +57,11 @@ module "monitoring" {
   resource_group_name = var.resource_group_name
   vm_id               = module.compute.vm_id
 }
+```
+
+---
+
+## 📌 Notes
+- The Data Collection Endpoint (DCE) is required for AMA to ingest data via DCR.
+- This module handles everything: workspace, DCE, DCR, association, and diagnostics.
+- You can query logs and metrics in Azure Monitor or visualize them in Grafana.
