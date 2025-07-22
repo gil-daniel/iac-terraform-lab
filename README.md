@@ -205,8 +205,6 @@ This project is fully modularized for clarity and reusability. Each module handl
 
 ## 📌 Next Steps
 
-📌 Next Steps
-
 Project goals already covered ✅ But if you want to explore further:
 - Automated dashboard provisioning
 - Alerts via Grafana
